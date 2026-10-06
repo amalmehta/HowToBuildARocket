@@ -117,7 +117,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 /* ---------- 3D viewers ---------- */
 .viewer-card { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); min-width: 0; }
 .viewer { position: relative; height: 460px; background: var(--viewer-bg); touch-action: none; }
-.viewer.tall { height: 560px; }
+.viewer.tall { height: 640px; }
 .viewer.wide { height: 520px; }
 .viewer canvas { display: block; width: 100% !important; height: 100% !important; cursor: grab; }
 .viewer canvas:active { cursor: grabbing; }
