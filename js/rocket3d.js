@@ -327,14 +327,22 @@ function buildRocket() {
   return rocket;
 }
 
-export function mountRocket(container, infoEl, buttonsEl) {
+export function mountRocket(container, infoEl, buttonsEl, { formatText = (t) => t } = {}) {
   // Framed tightly on the stacked rocket; the camera eases out for the exploded view.
   const viewer = createViewer(container, { position: [63, 49, 84], target: [0, 35, 0], fov: 38, far: 1000 });
   const { renderer, scene, camera, controls } = viewer;
 
   // Image-based lighting for believable metal and paint, plus soft shadows.
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  const buildEnvironment = () => {
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const room = new RoomEnvironment();
+    scene.environment?.dispose();
+    scene.environment = pmrem.fromScene(room, 0.04).texture;
+    room.traverse((o) => { o.geometry?.dispose(); o.material?.dispose?.(); });
+    pmrem.dispose();
+  };
+  buildEnvironment();
+  viewer.onContextRestored = buildEnvironment; // the environment map doesn't survive a lost context
   scene.environmentIntensity = 0.55;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -345,8 +353,11 @@ export function mountRocket(container, infoEl, buttonsEl) {
   const cam = sun.shadow.camera;
   cam.left = -25; cam.right = 25; cam.top = 60; cam.bottom = -40; cam.near = 10; cam.far = 200;
   sun.shadow.bias = -0.0004;
+  let shadowSize = 0;
   const applyShadowQuality = () => {
     const size = getSettings().quality === 'low' ? 1024 : 2048;
+    if (size === shadowSize) return; // only rebuild the shadow map when quality changes
+    shadowSize = size;
     sun.shadow.mapSize.set(size, size);
     sun.shadow.map?.dispose(); sun.shadow.map = null;
   };
@@ -405,22 +416,31 @@ export function mountRocket(container, infoEl, buttonsEl) {
   };
   viewer.onFrame(0);
 
-  // Highlight a selected part with a glow.
+  // Highlight a selected part with a glow. Each mesh gets one highlight
+  // material, made the first time and reused, so repeated clicks don't
+  // create new materials.
   let selected = null;
-  const select = (key) => {
-    if (selected) selected.traverse((o) => { if (o.material?.userData.orig !== undefined) { o.material.emissive.setHex(o.material.userData.orig); } });
-    selected = key ? rocket.children.concat(upper.children).find((g) => g.userData.part === key) : null;
-    if (selected) selected.traverse((o) => {
-      if (o.isMesh) {
-        o.material = o.material.clone();
-        o.material.userData.orig = o.material.emissive.getHex();
-        o.material.emissive.setHex(0xff7a1a);
-        o.material.emissiveIntensity = 0.45;
+  const highlight = (group, on) => group.traverse((o) => {
+    if (!o.isMesh || !o.material?.isMeshStandardMaterial) return;
+    if (on) {
+      if (!o.userData.hl) {
+        o.userData.base = o.material;
+        o.userData.hl = o.material.clone();
+        o.userData.hl.emissive.setHex(0xff7a1a);
+        o.userData.hl.emissiveIntensity = 0.45;
       }
-    });
+      o.material = o.userData.hl;
+    } else if (o.userData.base) {
+      o.material = o.userData.base;
+    }
+  });
+  const select = (key) => {
+    if (selected) highlight(selected, false);
+    selected = key ? rocket.children.concat(upper.children).find((g) => g.userData.part === key) : null;
+    if (selected) highlight(selected, true);
     const p = key && PARTS[key];
     infoEl.innerHTML = p
-      ? `<h4>${p.name}</h4><p class="muted small">${p.material}</p><p>${p.text}</p>`
+      ? `<h4>${p.name}</h4><p class="muted small">${p.material}</p><p>${formatText(p.text)}</p>`
       : '<p class="muted">Click any part of the rocket, or pick one below.</p>';
     buttonsEl.querySelectorAll('button[data-part]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.part === key)));
   };
