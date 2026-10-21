@@ -195,7 +195,7 @@ export const PARTS = {
 export const FLIGHT_EVENTS = [
   { t: 0, name: 'Liftoff', text: '9 engines, {q:7607:kN} of thrust, about 1.4 times the vehicle’s weight.' },
   { t: 72, name: 'Max-Q', text: 'Peak aerodynamic pressure. Engines throttle down to protect the structure.' },
-  { t: 150, name: 'Main engine cutoff', text: 'About {q:70:km} up and {q:2.3:km/s:1}. The first stage’s job is done.' },
+  { t: 150, name: 'Main engine cutoff', text: 'About {q:70:km} up and {q:2.2:km/s:1}. The first stage’s job is done.' },
   { t: 153, name: 'Stage separation', text: 'Pneumatic pushers separate the stages. The booster flips around with cold-gas thrusters.' },
   { t: 160, name: 'Second-stage ignition', text: 'Merlin Vacuum lights and burns for about 6 minutes.' },
   { t: 195, name: 'Fairing separation', text: 'Above most of the atmosphere, the fairing halves fall away.' },
@@ -209,8 +209,12 @@ export const FLIGHT_EVENTS = [
 // draws smooth curves through them; tests check they line up with the events.
 export const END_TIME = 600;
 export const SHIP_DOWNRANGE_KM = 600;
+// Stack: MECO at ~2.2 km/s on a ~30° climb (1.9 km/s across, 1.1 km/s up).
+// Booster: coasts ballistically to ~133 km at T+265 s, then falls to the ship.
+// Upper stage: reaches orbital ground speed (7.79 × 6371/6571 ≈ 7.55 km/s at
+// 200 km) at cutoff and then coasts at that speed.
 export const FLIGHT_TRACKS = {
-  stack: [[0, 0, 0], [40, 1, 6], [72, 8, 13], [110, 32, 36], [150, 80, 70]],
-  upper: [[150, 80, 70], [200, 170, 110], [300, 450, 165], [400, 850, 190], [530, 1650, 200], [600, 2196, 200]],
-  booster: [[153, 82, 72], [220, 200, 118], [280, 300, 128], [340, 420, 110], [400, 530, 60], [460, 590, 15], [500, 600, 3], [520, 600, 0]],
+  stack: [[0, 0, 0], [40, 1, 6], [72, 9, 14], [110, 35, 38], [140, 77, 58], [150, 96, 69]],
+  upper: [[150, 96, 69], [200, 200, 105], [300, 470, 160], [400, 900, 190], [480, 1350, 198], [530, 1700, 200], [600, 2228, 200]],
+  booster: [[153, 101, 71], [200, 180, 115], [265, 280, 133], [330, 380, 113], [400, 480, 52], [460, 570, 15], [500, 598, 3], [520, 600, 0]],
 };
