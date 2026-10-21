@@ -74,8 +74,10 @@ export function barChart(host, spec) {
     details.innerHTML = `<summary>Show as table</summary><table><caption class="sr-only">${caption}</caption><thead><tr><th scope="col">Item</th><th scope="col" class="num">Value</th>${notes ? '<th scope="col">Note</th>' : ''}</tr></thead><tbody>${body}</tbody></table>`;
   };
 
+  let current = 0; // which bar holds the chart's tab stop
   const draw = () => {
     tip.hide();
+    if (current >= rows.length) current = 0;
     const focusedRow = wrap.querySelector('.bar-row:focus')?.dataset.i;
     wrap.querySelector('svg')?.remove();
     const W = Math.max(240, wrap.clientWidth);
@@ -102,7 +104,8 @@ export function barChart(host, spec) {
 
     rows.forEach((r, i) => {
       const y = top + i * rowH;
-      const g = el('g', { class: 'bar-row', tabindex: 0, role: 'img', 'aria-label': `${r.label}: ${format(r.value)}${r.note ? `. ${r.note}` : ''}`, 'data-i': i }, svg);
+      // One tab stop per chart; arrow keys move between bars (roving tabindex).
+      const g = el('g', { class: 'bar-row', tabindex: i === current ? 0 : -1, role: 'img', 'aria-label': `${r.label}: ${format(r.value)}${r.note ? `. ${r.note}` : ''}`, 'data-i': i }, svg);
       const name = stacked
         ? el('text', { x: 0, y: y + 14, class: 'row-label' }, g)
         : el('text', { x: labelW - 10, y: y + rowH / 2 + 4, class: 'row-label', 'text-anchor': 'end' }, g);
@@ -130,6 +133,16 @@ export function barChart(host, spec) {
       hit.addEventListener('pointerleave', hide);
       g.addEventListener('focus', show);
       g.addEventListener('blur', hide);
+      g.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { hide(); return; }
+        const next = { ArrowDown: i + 1, ArrowRight: i + 1, ArrowUp: i - 1, ArrowLeft: i - 1, Home: 0, End: rows.length - 1 }[e.key];
+        if (next === undefined) return;
+        e.preventDefault();
+        current = Math.max(0, Math.min(rows.length - 1, next));
+        const rowsEls = svg.querySelectorAll('.bar-row');
+        rowsEls.forEach((r, k) => r.setAttribute('tabindex', k === current ? 0 : -1));
+        rowsEls[current].focus();
+      });
       if (String(i) === focusedRow) g.focus();
     });
   };

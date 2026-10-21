@@ -53,7 +53,7 @@
       <a href="#cost">Cost</a>
       <a href="#flight">Flight</a>
     </nav>
-    <button class="icon-btn" type="button" data-open-settings aria-label="Settings (⌘,)" title="Settings (⌘,)">
+    <button class="icon-btn" type="button" data-open-settings aria-label="Settings" title="Settings (⌘,)" aria-keyshortcuts="Meta+Comma Control+Comma">
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
     </button>
   </header>
@@ -69,38 +69,38 @@
         <p class="small muted">Falcon 9 Block 5 figures. <span data-src="spacex"></span></p>
       </div>
       <figure class="viewer-card">
-        <div id="rocket3d" class="viewer tall" role="img" aria-label="Interactive 3D model of Falcon 9. Drag to rotate, scroll or pinch to zoom. The part buttons below describe each part."></div>
+        <div id="rocket3d" class="viewer tall" aria-busy="true" role="img" aria-label="Interactive 3D model of Falcon 9. Drag to rotate, scroll or pinch to zoom. The part buttons below describe each part."><p class="loading3d">Loading 3D model…</p></div>
         <div class="viewer-controls">
           <label class="toggle"><input type="checkbox" id="explode"> Exploded view</label>
-          <span class="muted small">Drag to rotate · scroll or pinch to zoom · click a part</span>
+          <span class="muted viewer-hint">Drag or use arrow keys to rotate · <span class="kbd-mod">⌘</span>+scroll, pinch or +/− to zoom · click a part</span>
         </div>
         <div id="part-info" class="part-info" aria-live="polite"><p class="muted">Click any part of the rocket, or pick one below.</p></div>
-        <div id="part-buttons" class="chips"></div>
+        <div id="part-buttons" class="chips" role="group" aria-label="Rocket parts (press again to clear)"></div>
       </figure>
     </section>
 
     <!-- Roadmap -->
-    <section id="roadmap" class="section">
+    <section id="roadmap" class="section" aria-labelledby="roadmap-title">
       <header class="section-head">
         <p class="eyebrow">01 · Roadmap</p>
-        <h2>From nothing to orbit in ten phases</h2>
+        <h2 id="roadmap-title">From nothing to orbit in ten phases</h2>
         <p>The order SpaceX actually followed, from incorporation in 2002 to reusable Block 5 boosters in 2018. Several phases run in parallel, but engine development usually takes the longest. Costs are rough ranges for a new company today. Phase costs leave out staff, which the budget in the Cost section counts separately.</p>
       </header>
       <ol id="roadmap-list" class="roadmap"></ol>
     </section>
 
     <!-- Science -->
-    <section id="science" class="section">
+    <section id="science" class="section" aria-labelledby="science-title">
       <header class="section-head">
         <p class="eyebrow">02 · The hard science</p>
-        <h2>Why orbit is so hard</h2>
+        <h2 id="science-title">Why orbit is so hard</h2>
         <p>Orbit isn’t about going up. It’s about going sideways fast enough that the ground curves away beneath you as fast as you fall towards it. All the difficulty comes from one equation.</p>
       </header>
 
       <div class="grid-2">
         <article class="card">
           <h3>The rocket equation</h3>
-          <p class="equation" aria-label="delta v equals I s p times g zero times the natural log of m zero over m f">Δv = I<sub>sp</sub> · g<sub>0</sub> · ln(m<sub>0</sub> / m<sub>f</sub>)</p>
+          <p class="equation"><span aria-hidden="true">Δv = I<sub>sp</sub> · g<sub>0</sub> · ln(m<sub>0</sub> / m<sub>f</sub>)</span><span class="sr-only">Delta v equals I s p, times g zero, times the natural log of m zero over m f.</span></p>
           <ul class="defs">
             <li><b>Δv</b>: the change in velocity the rocket can produce</li>
             <li><b>I<sub>sp</sub></b>: specific impulse, a measure of engine efficiency in seconds (Merlin 1D: 282 s at sea level, 311 s in vacuum; the second stage’s Merlin Vacuum: 348 s)</li>
@@ -123,12 +123,12 @@
         <h3>Try it: fly a Falcon 9 with the rocket equation</h3>
         <p>Start from Falcon 9’s estimated stage masses. Then change the payload, keep propellant back for landing, or try a different engine, and see whether it still reaches orbit.</p>
         <form id="calc" class="calc" onsubmit="return false">
-          <label>Payload <output data-for="payload"></output><input type="range" name="payload" min="0" max="30" step="0.1" value="15.6"></label>
-          <label>Booster propellant kept for landing <output data-for="reserve" data-u="%"></output><input type="range" name="reserve" min="0" max="25" step="1" value="10"></label>
-          <label>Stage 1 I<sub>sp</sub> (average) <output data-for="s1Isp" data-u="s"></output><input type="range" name="s1Isp" min="200" max="340" step="1" value="296"></label>
-          <label>Stage 2 I<sub>sp</sub> <output data-for="s2Isp" data-u="s"></output><input type="range" name="s2Isp" min="250" max="460" step="1" value="348"></label>
-          <label>Stage 1 propellant <output data-for="s1Prop"></output><input type="range" name="s1Prop" min="200" max="500" step="0.1" value="395.7"></label>
-          <label>Stage 2 propellant <output data-for="s2Prop"></output><input type="range" name="s2Prop" min="40" max="150" step="0.01" value="92.67"></label>
+          <div class="field"><label for="calc-payload">Payload</label><output data-for="payload" for="calc-payload"></output><input id="calc-payload" type="range" name="payload" min="0" max="30" step="0.1" value="15.6"></div>
+          <div class="field"><label for="calc-reserve">Booster propellant kept for landing</label><output data-for="reserve" data-u="%" for="calc-reserve"></output><input id="calc-reserve" type="range" name="reserve" min="0" max="25" step="1" value="10"></div>
+          <div class="field"><label for="calc-s1Isp">Stage 1 I<sub>sp</sub> (average)</label><output data-for="s1Isp" data-u="s" for="calc-s1Isp"></output><input id="calc-s1Isp" type="range" name="s1Isp" min="200" max="340" step="1" value="296"></div>
+          <div class="field"><label for="calc-s2Isp">Stage 2 I<sub>sp</sub></label><output data-for="s2Isp" data-u="s" for="calc-s2Isp"></output><input id="calc-s2Isp" type="range" name="s2Isp" min="250" max="460" step="1" value="348"></div>
+          <div class="field"><label for="calc-s1Prop">Stage 1 propellant</label><output data-for="s1Prop" for="calc-s1Prop"></output><input id="calc-s1Prop" type="range" name="s1Prop" min="200" max="500" step="0.1" value="395.7"></div>
+          <div class="field"><label for="calc-s2Prop">Stage 2 propellant</label><output data-for="s2Prop" for="calc-s2Prop"></output><input id="calc-s2Prop" type="range" name="s2Prop" min="40" max="150" step="0.01" value="92.67"></div>
           <button type="button" class="btn ghost" data-reset>Reset to Falcon 9</button>
         </form>
         <div id="calc-out" class="calc-out"></div>
@@ -165,16 +165,16 @@
     </section>
 
     <!-- Engineering -->
-    <section id="engineering" class="section">
+    <section id="engineering" class="section" aria-labelledby="engineering-title">
       <header class="section-head">
         <p class="eyebrow">03 · Engineering</p>
-        <h2>The engine is the rocket</h2>
+        <h2 id="engineering-title">The engine is the rocket</h2>
         <p>Merlin 1D is a gas-generator engine. A small amount of propellant is burned to drive a turbine, which spins the pumps that push the rest into the main chamber at high pressure. That turbine exhaust is then dumped overboard: a little less efficient, but much simpler to build than closed-cycle (staged-combustion) engines, which feed that exhaust back into the main chamber.</p>
       </header>
 
       <div class="grid-engine">
         <figure class="viewer-card">
-          <div id="engine3d" class="viewer" aria-label="Interactive 3D model of the Merlin 1D engine"></div>
+          <div id="engine3d" class="viewer" aria-busy="true" role="img" aria-label="Interactive 3D model of the Merlin 1D engine: bell nozzle, combustion chamber, turbopump, gas-generator exhaust and the blue LOX and amber RP-1 lines. Cutaway slices it open to show the chamber inside; Hot fire lights the exhaust plume."><p class="loading3d">Loading 3D engine…</p></div>
           <div class="viewer-controls">
             <label class="toggle"><input type="checkbox" id="cutaway"> Cutaway</label>
             <label class="toggle"><input type="checkbox" id="hotfire"> Hot fire</label>
@@ -185,7 +185,7 @@
           <div id="engine-facts" class="card"></div>
           <figure class="card cycle">
             <figcaption><strong>Gas-generator cycle</strong>: how propellant gets from tank to nozzle</figcaption>
-            <svg viewBox="0 0 420 250" role="img" aria-label="Flow diagram: LOX and RP-1 tanks feed a turbopump. A small share goes to the gas generator which drives the turbine and dumps its exhaust overboard. RP-1 cools the nozzle walls before entering the injector with the LOX; they burn in the chamber and exit through the nozzle.">
+            <div class="cycle-scroll"><svg viewBox="0 0 420 250" role="img" aria-label="Flow diagram: LOX and RP-1 tanks feed a turbopump. A small share goes to the gas generator which drives the turbine and dumps its exhaust overboard. RP-1 cools the nozzle walls before entering the injector with the LOX; they burn in the chamber and exit through the nozzle.">
               <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
               <g class="dg">
                 <rect x="10" y="10" width="90" height="38" rx="6" class="lox"/><text x="55" y="34">LOX tank</text>
@@ -205,7 +205,7 @@
                 <path d="M65 168 V230 H20" class="flow dark-f" marker-end="url(#ah)"/><text x="70" y="244" class="small-t">exhaust overboard</text>
                 <path d="M30 130 V90 H138" class="flow dark-f" marker-end="url(#ah)"/><text x="36" y="84" class="small-t">hot gas spins turbine</text>
               </g>
-            </svg>
+            </svg></div>
           </figure>
         </div>
       </div>
@@ -221,13 +221,13 @@
     </section>
 
     <!-- Materials -->
-    <section id="materials" class="section">
+    <section id="materials" class="section" aria-labelledby="materials-title">
       <header class="section-head">
         <p class="eyebrow">04 · Materials</p>
-        <h2>What it’s made of, and why</h2>
+        <h2 id="materials-title">What it’s made of, and why</h2>
         <p>Every gram of structure is a gram of payload you can’t carry. Each material is chosen for strength per unit weight at the temperatures that part sees, from <span class="q" data-v="-207" data-u="°C">−207 °C</span> oxygen to <span class="q" data-v="3400" data-u="°C">3,400 °C</span> exhaust.</p>
       </header>
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Materials table (scrolls sideways on small screens)">
         <table id="materials-table" class="data">
           <thead><tr><th scope="col">Part</th><th scope="col">Material</th><th scope="col">Why</th><th scope="col">Temperatures</th></tr></thead>
           <tbody></tbody>
@@ -236,10 +236,10 @@
     </section>
 
     <!-- Cost -->
-    <section id="cost" class="section">
+    <section id="cost" class="section" aria-labelledby="cost-title">
       <header class="section-head">
         <p class="eyebrow">05 · Cost</p>
-        <h2>What it costs</h2>
+        <h2 id="cost-title">What it costs</h2>
         <p>SpaceX’s main innovation was economic. It built most parts in-house, kept the team small, used one engine design for both stages, and then reused the most expensive stage.</p>
       </header>
 
@@ -271,34 +271,34 @@
     </section>
 
     <!-- Flight -->
-    <section id="flight" class="section">
+    <section id="flight" class="section" aria-labelledby="flight-title">
       <header class="section-head">
         <p class="eyebrow">06 · Flight profile</p>
-        <h2>Ten minutes from pad to orbit</h2>
-        <p>A typical mission with a droneship landing. White: both stages together. Orange: the second stage to orbit. Blue: the booster coming back. Altitudes are exaggerated 5× by default so the climb is visible against the size of the Earth; set Altitude × to 1 for true scale.</p>
+        <h2 id="flight-title">Ten minutes from pad to orbit</h2>
+        <p>A typical mission with a droneship landing. White: both stages together. Orange: the second stage to orbit. Blue: the booster coming back. Altitudes are exaggerated 5× by default so the climb is visible against the size of the Earth; set Altitude exaggeration to 1× for true scale.</p>
       </header>
       <figure class="viewer-card flight-card">
-        <div id="flight3d" class="viewer wide" aria-label="3D animation of a Falcon 9 flight over the curved Earth"></div>
+        <div id="flight3d" class="viewer wide" aria-busy="true" role="img" aria-label="3D animation of a Falcon 9 flight over the curved Earth: the white path is both stages together, orange is the second stage climbing to orbit, blue is the booster flying back to the droneship. The event list below describes each step."><p class="loading3d">Loading 3D flight…</p></div>
         <div class="flight-ui">
           <div class="flight-row">
-            <button type="button" class="btn" id="flight-play" aria-pressed="false">Play</button>
+            <button type="button" class="btn" id="flight-play">Play</button>
             <input type="range" id="flight-time" min="0" max="600" step="1" value="600" aria-label="Mission time">
-            <label class="small">Altitude ×
-              <select id="exaggeration"><option value="1">1</option><option value="5" selected>5</option><option value="10">10</option></select>
+            <label class="small">Altitude exaggeration
+              <select id="exaggeration"><option value="1">1× (true scale)</option><option value="5" selected>5×</option><option value="10">10×</option></select>
             </label>
             <button type="button" class="btn ghost" id="flight-reframe">Recentre</button>
           </div>
-          <p id="flight-status" class="flight-status" aria-live="polite"></p>
+          <p id="flight-status" class="flight-status" aria-live="polite">Loading the flight…</p>
           <p id="flight-readout" class="flight-readout small muted"></p>
           <ol id="flight-events" class="events"></ol>
         </div>
       </figure>
     </section>
 
-    <section id="sources" class="section">
+    <section id="sources" class="section" aria-labelledby="sources-title">
       <header class="section-head">
         <p class="eyebrow">Sources and caveats</p>
-        <h2>Where the numbers come from</h2>
+        <h2 id="sources-title">Where the numbers come from</h2>
         <p>Headline specs come from SpaceX. Development cost estimates come from NASA’s NAFCOM model, SpaceX’s own figure is company-reported, and cost per kilogram comes from Jones (2018). Stage masses, chamber conditions and per-flight costs are public estimates and are marked as such. This site is an educational overview, not an engineering procedure. Real rocket work takes trained teams, licensed sites and serious safety controls.</p>
       </header>
       <ul id="sources-list" class="sources"></ul>
@@ -306,7 +306,7 @@
   </main>
 
   <footer class="footer">
-    <p>How to Build a Rocket · An educational project, not affiliated with SpaceX · <a href="https://github.com/amalmehta/HowToBuildARocket">Source on GitHub</a></p>
+    <p>How to Build a Rocket · An educational project, not affiliated with SpaceX · <a href="https://github.com/amalmehta/HowToBuildARocket">Source on GitHub</a><span class="footer-feedback-wrap"> · <button type="button" class="footer-feedback" data-open-feedback>Send feedback</button></span></p>
   </footer>
 
   <button type="button" class="feedback-tab" data-open-feedback>Feedback</button>

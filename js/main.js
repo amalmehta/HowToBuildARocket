@@ -7,7 +7,7 @@ import { webglAvailable } from './webgl.js';
 const $ = (s, r = document) => r.querySelector(s);
 const units = () => getSettings().units;
 const imperial = () => units() === 'imperial';
-const src = (key) => SOURCES[key] ? ` <a href="${SOURCES[key].url}" target="_blank" rel="noopener" title="${SOURCES[key].label}">source</a>` : '';
+const src = (key) => SOURCES[key] ? ` <a href="${SOURCES[key].url}" target="_blank" rel="noopener" title="${SOURCES[key].label}">source<span class="sr-only">: ${SOURCES[key].label} (opens in a new tab)</span></a>` : '';
 const DV_NEEDED = DV_BUDGET.reduce((a, b) => a + b.value, 0);
 const FEEDBACK_REPO = 'https://github.com/amalmehta/HowToBuildARocket';
 
@@ -62,7 +62,7 @@ function renderEngineFacts() {
 function renderMaterials() {
   const temp = (t) => (typeof t === 'string' ? t : `${t.value < 0 ? 'Down to ' : '~'}${q(t.value, t.unit)}${t.note ? ` (${t.note})` : ''}`);
   $('#materials-table tbody').innerHTML = MATERIALS.map((m) => `
-    <tr><th scope="row">${m.part}</th><td><strong>${m.material}</strong></td><td>${m.why}${m.src ? src(m.src) : ''}</td><td class="nowrap">${temp(m.temp)}</td></tr>`).join('');
+    <tr><th scope="row">${m.part}</th><td data-label="Material"><strong>${m.material}</strong></td><td data-label="Why">${m.why}${m.src ? src(m.src) : ''}</td><td class="nowrap" data-label="Temperatures">${temp(m.temp)}</td></tr>`).join('');
 }
 
 function renderBudget() {
@@ -221,7 +221,7 @@ function init3D() {
         }
         readout.innerHTML = `<strong>T+${fmtTime(time)}</strong> · Second stage: ${q(upper.h, 'km')} up, ${q(upper.x, 'km')} downrange${booster ? ` · Booster: ${q(booster.h, 'km')} up` : ''}`;
       },
-      onPlayState(p) { playBtn.textContent = p ? 'Pause' : 'Play'; playBtn.setAttribute('aria-pressed', String(p)); },
+      onPlayState(p) { playBtn.textContent = p ? 'Pause' : 'Play'; },
     });
     f.setExaggeration(Number($('#exaggeration').value));
     setFlightEnabled(true);
@@ -300,6 +300,13 @@ step('nav', initNav);
 step('3d', init3D);
 step('source links', () => document.querySelectorAll('[data-src]').forEach((e) => { e.innerHTML = src(e.dataset.src).trim(); }));
 step('units', refreshQuantities);
+step('shortcut hints', () => {
+  // Show Ctrl instead of ⌘ outside Apple platforms.
+  const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  if (mac) return;
+  document.querySelectorAll('.kbd-mod').forEach((e) => { e.textContent = 'Ctrl'; });
+  document.querySelectorAll('[data-open-settings]').forEach((b) => { b.title = 'Settings (Ctrl+,)'; });
+});
 
 let lastUnits = units();
 window.addEventListener('settingschange', (e) => {
