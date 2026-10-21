@@ -2,8 +2,6 @@
 
 A from-scratch roadmap to an orbital rocket, using Falcon 9 as the example: the physics, engineering, materials and cost, with interactive 3D models.
 
-**[Open the site →](https://amalmehta.github.io/HowToBuildARocket/)**
-
 ![The site: Falcon 9 3D model next to the headline specs](docs/images/hero.png)
 
 | Falcon 9, exploded | Merlin 1D cutaway, hot fire | Ten minutes to orbit |
@@ -12,16 +10,19 @@ A from-scratch roadmap to an orbital rocket, using Falcon 9 as the example: the 
 
 ![Cost charts: development cost and cost per kilogram](docs/images/cost.png)
 
+**The ten-phase roadmap**
+
 ```mermaid
 flowchart LR
-  A[1 Company and capital] --> B[2 Architecture] --> C[3 Engine development]
-  B --> D[4 Test sites] & E[5 Structures] & F[6 Avionics and software]
-  C & D & E & F --> G[7 Integration and qualification] --> I[9 First flights] --> J[10 Reuse at scale]
-  H[8 Launch site and licence] --> I
+  A[1 Company and capital] --> B[2 Requirements and architecture] --> C[3 Engine development]
+  B --> D[4 Test infrastructure] & E[5 Structures and tanks] & F[6 Avionics, guidance and software] & H[8 Launch site and licensing]
+  C & D & E & F --> G[7 Integration and qualification] --> I[9 First flights] --> J[10 Reuse and scaled operations]
+  H --> I
 ```
 
 ## Links
 
+- **[Open the site](https://amalmehta.github.io/HowToBuildARocket/)**
 - [Instructions](docs/INSTRUCTIONS.md): use it, run it locally, test it
 - [System design](docs/SYSTEM-DESIGN.md): architecture, flows, decisions, limits
 - [File structure](docs/FILE-STRUCTURE.md): what's where
