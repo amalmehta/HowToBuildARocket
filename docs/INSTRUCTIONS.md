@@ -9,18 +9,20 @@ Open **https://amalmehta.github.io/HowToBuildARocket/**. It works in any current
 - **Merlin engine** (Engineering): tick **Cutaway** to slice the engine open and **Hot fire** to light it.
 - **Flight** (bottom): press **Play**, drag the timeline, or click an event. Change **Altitude ×** to see the real proportions (×1). **Recentre** resets the camera.
 - **Charts**: hover or tab to a bar for details. **Show as table** lists the numbers.
-- **Settings**: the gear button, or ⌘, (Ctrl+, on Windows/Linux). Theme, metric/imperial units, 3D quality, reduced motion, auto-rotate.
+- **Settings**: the gear button, or ⌘, (Ctrl+, on Windows/Linux). Theme, metric/imperial units, 3D quality, motion (match system, full or reduced), auto-rotate. Only the choices you change are saved, so "Match system" keeps following your OS.
 - **Feedback**: the tab on the right edge opens a pre-filled GitHub issue.
 
 ## Run it locally
 
-Requirements: any static file server. Python 3 or Node 18+ both work. Three.js loads from jsDelivr, so you need to be online.
+Requirements: Python 3 to serve the files (`npm start` runs `python3 -m http.server 8000`; any static file server works) and Node 18+ to run the tests. Three.js loads from jsDelivr, so you need to be online for the 3D models.
 
 ```bash
 git clone https://github.com/amalmehta/HowToBuildARocket.git
 cd HowToBuildARocket
-python3 -m http.server 8000
+npm start
 ```
+
+(or `python3 -m http.server 8000` without npm)
 
 Then open http://localhost:8000. Opening `index.html` directly from disk won't work, because browsers block ES modules on `file://`.
 

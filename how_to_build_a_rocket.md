@@ -59,15 +59,13 @@ Asked and answered (2026-10-05):
 Decided without asking:
 - Plain static site (HTML/CSS/ES modules, no build step). Three.js r170 loaded from jsDelivr.
 - The three 3D visualisations are a Falcon 9 model (exploded view, clickable parts), a Merlin 1D engine (cutaway, hot fire) and a flight profile over the Earth (timeline). The models are built in code from simple shapes, not downloaded meshes.
-- Stage masses, chamber conditions, per-flight cost shares and the new-company budget are public estimates, labelled as such on the page. Headline specs come from SpaceX. Development costs come from NASA's 2011 NAFCOM study. Cost per kg comes from Jones (2018, NASA NTRS).
-- The calculator uses the ideal rocket equation plus a fixed loss budget (about 8,970 m/s to a 200 km orbit). It gives about 22.3 t expendable, against the published 22.8 t.
+- Stage masses, chamber conditions, per-flight cost shares and the new-company budget are public estimates, labelled as such on the page. Headline specs come from SpaceX. Development cost estimates come from NASA's 2011 NAFCOM study; SpaceX's own figure is company-reported, via NASA's 2011 Commercial Market Assessment. The 2026 list price ($74M) comes from Spaceflight Now. Cost per kg comes from Jones (2018, NASA NTRS).
+- The calculator uses the ideal rocket equation plus a fixed loss budget (about 8,930 m/s to a 200 km orbit). It gives about 22.6 t expendable against the published 22.8 t, and about 17 t with a 10% landing reserve against the published 17.4 t.
 - The feedback tab opens a pre-filled GitHub issue rather than sending data anywhere.
 - Light and dark themes follow the system by default. Metric is the default, with imperial available.
 
 CHANGELOG:
 
-- 2026-10-05 — created
-- 2026-10-05 — built the website: roadmap, science, engineering, materials, cost, three 3D scenes, calculator, settings, feedback, docs and tests
 - 2026-09-15 — added meta-instruction: built-out applications include a small feedback tab
 - 2026-09-15 — added meta-instruction: no "Claude" attribution in commits, PRs, or branches
 - 2026-09-16 — added meta-instruction: always include a README when adding to GitHub
@@ -83,4 +81,9 @@ CHANGELOG:
 - 2026-09-29 — changed meta-instruction: GitHub repo names have no "_" or "-"
 - 2026-10-02 — added a DELIVERABLES field after CONTEXT
 - 2026-10-02 — added meta-instruction: every project has a system design doc at docs/SYSTEM-DESIGN.md
+- 2026-10-05 — created
+- 2026-10-05 — built the website: roadmap, science, engineering, materials, cost, three 3D scenes, calculator, settings, feedback, docs and tests
 - 2026-10-05 — added meta-instruction: applications include a settings button or tab
+- 2026-10-06 — made the hero rocket bigger and more detailed (taller viewer, raceways, detailed Merlins, grid-fin lattice, legs with struts, thruster pods, image-based lighting, shadows)
+- 2026-10-06 — added an app icon (favicon.svg, favicon.ico, apple-touch-icon.png)
+- 2026-10-20 — fixed and polished 100 things found by a five-part audit (facts and sources, code bugs, accessibility and mobile, 3D and charts, docs and tests); see the polish PR

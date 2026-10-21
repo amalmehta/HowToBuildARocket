@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>How to Build a Rocket: a rocket lifting off</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2=".6" y2="1">
+      <stop offset="0" stop-color="#d9e6f7"/>
+      <stop offset="1" stop-color="#fbd6bd"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".55"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="tile"><path d="M300 0H724C948 0 1024 76 1024 300V724C1024 948 948 1024 724 1024H300C76 1024 0 948 0 724V300C0 76 76 0 300 0Z"/></clipPath>
+    <filter id="lift" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#3a2a1a" flood-opacity=".14"/>
+    </filter>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".6" stop-color="#f4f1ed"/>
+      <stop offset="1" stop-color="#d9d3cc"/>
+    </linearGradient>
+    <linearGradient id="flame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffc35c"/>
+      <stop offset="1" stop-color="#e2531f" stop-opacity=".9"/>
+    </linearGradient>
+  </defs>
+  <path d="M300 0H724C948 0 1024 76 1024 300V724C1024 948 948 1024 724 1024H300C76 1024 0 948 0 724V300C0 76 76 0 300 0Z" fill="url(#bg)"/>
+  <path d="M300 0H724C948 0 1024 76 1024 300V724C1024 948 948 1024 724 1024H300C76 1024 0 948 0 724V300C0 76 76 0 300 0Z" fill="url(#sheen)"/>
+  <g clip-path="url(#tile)" filter="url(#lift)">
+  <path d="M440 716 C440 810 486 870 512 912 C538 870 584 810 584 716 Z" fill="url(#flame)"/>
+  <path d="M396 540 L294 676 C284 690 290 724 306 724 L396 700 Z" fill="#2c3443"/>
+  <path d="M628 540 L730 676 C740 690 734 724 718 724 L628 700 Z" fill="#2c3443"/>
+  <path d="M512 130 C604 206 640 300 640 400 V716 H384 V400 C384 300 420 206 512 130 Z" fill="url(#body)" stroke="#b9b0a6" stroke-width="8"/>
+  <rect x="384" y="376" width="256" height="48" fill="#2c3443"/>
+  <rect x="384" y="668" width="256" height="48" fill="#2c3443"/>
+  </g>
+</svg>

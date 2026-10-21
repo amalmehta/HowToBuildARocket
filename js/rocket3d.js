@@ -3,6 +3,7 @@
 // splits the fairing and deploys the landing legs.
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createViewer, onPick } from './viewer.js';
 import { PARTS } from './data.js';
 import { getSettings } from './settings.js';
@@ -21,7 +22,7 @@ function rng(seed) {
 // (optionally) the soot a reused booster picks up from re-entry burns.
 // The canvas top maps to the top of the cylinder.
 function bodyTexture({ height, soot = 0, seams = [], seed = 7 }) {
-  const W = 1024, H = Math.round(Math.min(4096, height * 96));
+  const W = 512, H = Math.round(Math.min(2048, height * 48));
   const c = document.createElement('canvas');
   c.width = W; c.height = H;
   const g = c.getContext('2d');
@@ -61,7 +62,7 @@ function bodyTexture({ height, soot = 0, seams = [], seed = 7 }) {
   }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 8;
+  t.anisotropy = 8; // capped to the GPU's limit in mountRocket
   return t;
 }
 
@@ -130,9 +131,10 @@ function bell(throat, exit, length, material, lip = 0.015) {
 // One Merlin 1D: nozzle, chamber, turbopump and gas-generator exhaust.
 function merlin() {
   const e = new THREE.Group();
-  const n = bell(0.15, 0.46, 1.55, mat.nozzle);
+  // Sea-level Merlin 1D: expansion ratio (0.46 / 0.115)² ≈ 16.
+  const n = bell(0.115, 0.46, 1.65, mat.nozzle);
   e.add(n);
-  const throat = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.15, 0.35, 32), mat.copper);
+  const throat = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.115, 0.35, 32), mat.copper);
   throat.position.y = 0.17; e.add(throat);
   const dome = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 0.3, 32), mat.steel);
   dome.position.y = 0.5; e.add(dome);
@@ -173,6 +175,27 @@ function gridFin() {
   return g;
 }
 
+// Merge every mesh under `group` into one mesh per material: far fewer draw
+// calls for parts built from many pieces (grid-fin lattice, nine engines).
+function mergeByMaterial(group) {
+  group.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(group.matrixWorld).invert();
+  const buckets = new Map();
+  group.traverse((o) => {
+    if (!o.isMesh) return;
+    const geo = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+    for (const name of Object.keys(geo.attributes)) if (!['position', 'normal', 'uv'].includes(name)) geo.deleteAttribute(name);
+    geo.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
+    if (!buckets.has(o.material)) buckets.set(o.material, []);
+    buckets.get(o.material).push(geo);
+  });
+  const merged = new THREE.Group();
+  merged.userData = group.userData;
+  for (const [material, geos] of buckets) merged.add(new THREE.Mesh(mergeGeometries(geos), material));
+  merged.position.copy(group.position); merged.quaternion.copy(group.quaternion); merged.scale.copy(group.scale);
+  return merged;
+}
+
 // A thin cylinder stretched between two points (for leg struts).
 function strutBetween(mesh, a, b) {
   const d = new THREE.Vector3().subVectors(b, a);
@@ -197,7 +220,7 @@ function buildRocket() {
   const shieldPlate = new THREE.Mesh(new THREE.CircleGeometry(R, SEG), mat.soot);
   shieldPlate.rotation.x = Math.PI / 2; shieldPlate.position.y = 1.9;
   engines.add(shield, shieldPlate);
-  rocket.add(engines);
+  rocket.add(mergeByMaterial(engines));
 
   // First stage: one textured tank from 2.5 m to 41 m, plus a raceway.
   const s1Height = 38.5;
@@ -210,7 +233,7 @@ function buildRocket() {
   const pods = new THREE.Group();
   for (const a of [Math.PI / 4, -3 * Math.PI / 4]) {
     const pod = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.9, 0.3), mat.black);
-    pod.position.set(Math.cos(a) * (R + 0.1), 40.2, Math.sin(a) * (R + 0.1));
+    pod.position.set(Math.cos(a) * (R + 0.2), 46.6, Math.sin(a) * (R + 0.2));
     pod.rotation.y = -a + Math.PI / 2;
     pods.add(pod);
   }
@@ -221,7 +244,7 @@ function buildRocket() {
   const legs = part('legs');
   legs.userData.items = [];
   const legShape = new THREE.Shape();
-  legShape.moveTo(-0.42, 0); legShape.lineTo(0.42, 0); legShape.lineTo(0.22, 9.6); legShape.lineTo(-0.22, 9.6); legShape.closePath();
+  legShape.moveTo(-0.42, 0); legShape.lineTo(0.42, 0); legShape.lineTo(0.22, 7.6); legShape.lineTo(-0.22, 7.6); legShape.closePath();
   const legGeo = new THREE.ExtrudeGeometry(legShape, { depth: 0.22, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.03, bevelSegments: 2 });
   legGeo.translate(0, 0, -0.11);
   const strutGeo = new THREE.CylinderGeometry(0.07, 0.07, 1, 12);
@@ -234,7 +257,7 @@ function buildRocket() {
     const leg = new THREE.Mesh(legGeo, mat.black);
     leg.rotation.y = Math.PI / 2; // broad face against the body
     const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, 0.12, 24), mat.steel);
-    foot.position.y = 9.65;
+    foot.position.y = 7.65;
     arm.add(leg, foot);
     pivot.add(arm);
     const strut = new THREE.Mesh(strutGeo, mat.metal);
@@ -249,9 +272,9 @@ function buildRocket() {
   for (let i = 0; i < 4; i++) {
     const a = i * Math.PI / 2;
     const holder = new THREE.Group();
-    holder.position.set(Math.cos(a) * (R + 0.18), 39.4, Math.sin(a) * (R + 0.18));
+    holder.position.set(Math.cos(a) * (R + 0.2), 46.2, Math.sin(a) * (R + 0.2));
     holder.rotation.y = -a + Math.PI / 2;
-    const f = gridFin();
+    const f = mergeByMaterial(gridFin());
     f.position.z = 0.05;
     const actuator = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.3), mat.black);
     actuator.position.set(0, -0.95, -0.1);
@@ -264,15 +287,17 @@ function buildRocket() {
   const carbon = mat.black.clone();
   carbon.map = carbonTexture();
   carbon.roughness = 0.4;
-  const interstage = part('interstage', cylinder(R + 0.02, 6.5, 41, carbon));
+  carbon.side = THREE.DoubleSide;
+  const interstage = part('interstage', cylinder(R + 0.02, 6.5, 41, carbon, SEG, true)); // a hollow skirt
   rocket.add(interstage);
 
   // Upper part that lifts away in the exploded view.
   const upper = new THREE.Group();
 
-  const mvacNozzle = bell(0.2, 1.3, 4.4, mat.niobium, 0.02);
+  // Merlin Vacuum: expansion ratio (1.6 / 0.125)² ≈ 164, nearly as wide as the stage.
+  const mvacNozzle = bell(0.125, 1.6, 4.4, mat.niobium, 0.02);
   mvacNozzle.position.y = 47.0;
-  const mvacEngine = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.2, 0.7, 32), mat.copper);
+  const mvacEngine = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.125, 0.7, 32), mat.copper);
   mvacEngine.position.y = 47.35;
   const mvac = part('mvac', mvacNozzle, mvacEngine);
 
@@ -304,7 +329,7 @@ function buildRocket() {
     fairing.add(half);
     fairing.userData.halves.push(half);
   }
-  const fairingBase = cylinder(R + 0.01, 0.15, 57.4, mat.black);
+  const fairingBase = cylinder(R + 0.01, 0.15, 57.4, mat.black, SEG, true);
   fairing.add(fairingBase);
 
   // A generic satellite inside the fairing.
@@ -327,26 +352,47 @@ function buildRocket() {
   return rocket;
 }
 
-export function mountRocket(container, infoEl, buttonsEl) {
+export function mountRocket(container, infoEl, buttonsEl, { formatText = (t) => t } = {}) {
   // Framed tightly on the stacked rocket; the camera eases out for the exploded view.
-  const viewer = createViewer(container, { position: [63, 49, 84], target: [0, 35, 0], fov: 38, far: 1000 });
+  const viewer = createViewer(container, { position: [66.6, 48.8, 88.8], target: [0, 34, 0], fov: 38, far: 1000, lights: false });
   const { renderer, scene, camera, controls } = viewer;
 
   // Image-based lighting for believable metal and paint, plus soft shadows.
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  const buildEnvironment = () => {
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const room = new RoomEnvironment();
+    scene.environment?.dispose();
+    scene.environment = pmrem.fromScene(room, 0.04).texture;
+    room.traverse((o) => { o.geometry?.dispose(); o.material?.dispose?.(); });
+    pmrem.dispose();
+  };
+  buildEnvironment();
+  viewer.onContextRestored = buildEnvironment; // the environment map doesn't survive a lost context
   scene.environmentIntensity = 0.55;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  const sun = new THREE.DirectionalLight(0xfff4e6, 2.2);
-  sun.position.set(40, 90, 30);
+  // Key light from the side so the white tank shows a terminator, plus a soft fill.
+  renderer.toneMappingExposure = 0.85;
+  scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x2a2622, 0.35));
+  const fill = new THREE.DirectionalLight(0x9ab8ff, 0.5);
+  fill.position.set(60, 20, 80);
+  scene.add(fill);
+  const sun = new THREE.DirectionalLight(0xfff4e6, 2.6);
+  sun.position.set(-70, 120, 10);
   sun.target.position.set(0, 30, 0);
   sun.castShadow = true;
   const cam = sun.shadow.camera;
-  cam.left = -25; cam.right = 25; cam.top = 60; cam.bottom = -40; cam.near = 10; cam.far = 200;
+  cam.left = -16; cam.right = 16; cam.top = 45; cam.bottom = -45; cam.near = 10; cam.far = 260;
   sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.04;
+  // Objects and light don't move, so the shadow map is redrawn only during the exploded-view animation.
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.needsUpdate = true;
+  let shadowSize = 0;
   const applyShadowQuality = () => {
     const size = getSettings().quality === 'low' ? 1024 : 2048;
+    if (size === shadowSize) return; // only rebuild the shadow map when quality changes
+    shadowSize = size;
     sun.shadow.mapSize.set(size, size);
     sun.shadow.map?.dispose(); sun.shadow.map = null;
   };
@@ -355,21 +401,25 @@ export function mountRocket(container, infoEl, buttonsEl) {
   scene.add(sun, sun.target);
 
   const rocket = buildRocket();
+  const maxAniso = renderer.capabilities.getMaxAnisotropy();
+  rocket.traverse((o) => { if (o.material?.map) o.material.map.anisotropy = Math.min(8, maxAniso); });
   scene.add(rocket);
 
   // Pad: a concrete disc with a soft shadow.
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(30, 96), new THREE.MeshStandardMaterial({ color: 0x4a4d52, roughness: 0.95, transparent: true, opacity: 0.6 }));
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(45, 96), new THREE.MeshStandardMaterial({ color: 0x4a4d52, roughness: 0.95, transparent: true, opacity: 0.6 }));
   ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.15;
   ground.receiveShadow = true;
   scene.add(ground);
 
   let exploded = 0, target = 0;
   const { legs, upper, fairing, payload } = rocket.userData;
   const anchor = new THREE.Vector3(), legPoint = new THREE.Vector3();
+  let posed = true; // pose the model once on the first frame
 
   // Camera distance and height as functions of how exploded the view is.
-  const zoom = (e) => 1 + 0.32 * e;
-  const lift = (e) => 11 * e;
+  const zoom = (e) => 1 + 0.45 * e;
+  const lift = (e) => 9 * e;
 
   viewer.onFrame = (dt) => {
     const speed = viewer.motion === 'reduced' ? 100 : 2.2;
@@ -377,6 +427,10 @@ export function mountRocket(container, infoEl, buttonsEl) {
     exploded += (target - exploded) * Math.min(1, dt * speed);
     if (Math.abs(exploded - target) < 1e-4) exploded = target;
     const e = exploded;
+    // Nothing to animate: tell the viewer it needn't redraw for us.
+    if (e === prev && !posed) return false;
+    posed = false;
+    renderer.shadowMap.needsUpdate = true;
 
     if (e !== prev) {
       // Ease the camera out (or back in), keeping whatever angle and zoom the user chose.
@@ -398,29 +452,39 @@ export function mountRocket(container, infoEl, buttonsEl) {
       const phi = -e * 1.95;
       arm.rotation.z = phi;
       // Strut from the body to the middle of the leg.
-      anchor.set(-0.05, 8.2, 0);
-      legPoint.set(-6 * Math.sin(phi) + 0.15 * Math.cos(phi), 6 * Math.cos(phi) + 0.15 * Math.sin(phi), 0);
+      anchor.set(-0.05, 6.5, 0);
+      legPoint.set(-4.6 * Math.sin(phi) + 0.15 * Math.cos(phi), 4.6 * Math.cos(phi) + 0.15 * Math.sin(phi), 0);
       strutBetween(strut, anchor, legPoint);
     });
+    return true;
   };
   viewer.onFrame(0);
 
-  // Highlight a selected part with a glow.
+  // Highlight a selected part with a glow. Each mesh gets one highlight
+  // material, made the first time and reused, so repeated clicks don't
+  // create new materials.
   let selected = null;
-  const select = (key) => {
-    if (selected) selected.traverse((o) => { if (o.material?.userData.orig !== undefined) { o.material.emissive.setHex(o.material.userData.orig); } });
-    selected = key ? rocket.children.concat(upper.children).find((g) => g.userData.part === key) : null;
-    if (selected) selected.traverse((o) => {
-      if (o.isMesh) {
-        o.material = o.material.clone();
-        o.material.userData.orig = o.material.emissive.getHex();
-        o.material.emissive.setHex(0xff7a1a);
-        o.material.emissiveIntensity = 0.45;
+  const highlight = (group, on) => group.traverse((o) => {
+    if (!o.isMesh || !o.material?.isMeshStandardMaterial) return;
+    if (on) {
+      if (!o.userData.hl) {
+        o.userData.base = o.material;
+        o.userData.hl = o.material.clone();
+        o.userData.hl.emissive.setHex(0xff7a1a);
+        o.userData.hl.emissiveIntensity = 0.45;
       }
-    });
+      o.material = o.userData.hl;
+    } else if (o.userData.base) {
+      o.material = o.userData.base;
+    }
+  });
+  const select = (key) => {
+    if (selected) highlight(selected, false);
+    selected = key ? rocket.children.concat(upper.children).find((g) => g.userData.part === key) : null;
+    if (selected) highlight(selected, true);
     const p = key && PARTS[key];
     infoEl.innerHTML = p
-      ? `<h4>${p.name}</h4><p class="muted small">${p.material}</p><p>${p.text}</p>`
+      ? `<p class="part-title"><strong>${p.name}</strong></p><p class="muted small">${p.material}</p><p>${formatText(p.text)}</p>`
       : '<p class="muted">Click any part of the rocket, or pick one below.</p>';
     buttonsEl.querySelectorAll('button[data-part]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.part === key)));
   };
@@ -430,7 +494,8 @@ export function mountRocket(container, infoEl, buttonsEl) {
   buttonsEl.innerHTML = Object.entries(PARTS).map(([k, p]) => `<button type="button" class="chip" data-part="${k}" aria-pressed="false">${p.name}</button>`).join('');
   buttonsEl.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-part]');
-    if (b) select(b.dataset.part);
+    // Pressing the selected part again clears the selection.
+    if (b) select(b.getAttribute('aria-pressed') === 'true' ? null : b.dataset.part);
   });
 
   return {

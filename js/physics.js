@@ -27,10 +27,13 @@ export function thrustToWeight(thrustNewtons, massKg) {
 
 // Two-stage vehicle. Stage masses in kg. `landingReserve` is the fraction of
 // first-stage propellant kept back for boostback, entry and landing burns.
-export function twoStage({ s1Dry, s1Prop, s1Isp, s2Dry, s2Prop, s2Isp, payload, fairing = 0, landingReserve = 0 }) {
+// The fairing rides through stage 1 and the first `fairingFrac` of the
+// stage-2 burn (Falcon 9 drops it about 35 s into a ~400 s burn).
+export function twoStage({ s1Dry, s1Prop, s1Isp, s2Dry, s2Prop, s2Isp, payload, fairing = 0, landingReserve = 0, fairingFrac = 0.09 }) {
   const s2Wet = s2Dry + s2Prop + payload;
-  const s2Burnout = s2Dry + payload;
-  const dv2 = deltaV(s2Isp, s2Wet, s2Burnout);
+  const early = s2Prop * fairingFrac;
+  const dv2 = deltaV(s2Isp, s2Wet + fairing, s2Wet + fairing - early)
+    + deltaV(s2Isp, s2Wet - early, s2Dry + payload);
 
   const reserve = s1Prop * landingReserve;
   const s1Wet = s1Dry + s1Prop + fairing + s2Wet;
@@ -58,9 +61,10 @@ const IMPERIAL = {
   km: { unit: 'mi', f: 0.621371 },
   kg: { unit: 'lb', f: 2.20462 },
   t: { unit: 'short tons', f: 1.10231 },
+  MN: { unit: 'lbf', f: 224809 },
   kN: { unit: 'lbf', f: 224.809 },
   'm/s': { unit: 'mph', f: 2.23694 },
-  'km/s': { unit: 'mi/s', f: 0.621371 },
+  'km/s': { unit: 'mph', f: 2236.94 }, // one imperial speed unit everywhere
   MPa: { unit: 'psi', f: 145.038 },
   K: { unit: '°F', convert: (k) => (k - 273.15) * 9 / 5 + 32 },
   '°C': { unit: '°F', convert: (c) => c * 9 / 5 + 32 },
@@ -78,10 +82,55 @@ export function formatNumber(value, digits = 0) {
   if (!Number.isFinite(value)) return '—';
   const abs = Math.abs(value);
   const d = abs >= 100 ? Math.min(digits, 0) : digits;
-  return value.toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: 0 });
+  // Avoid "-0" for tiny negatives that round to zero.
+  if (Math.round(abs * 10 ** d) === 0) value = 0;
+  // A real minus sign reads better than a hyphen.
+  return value.toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: 0 }).replace(/^-/, '−');
 }
 
 export function formatQuantity(value, unit, system, digits = 0) {
   const c = convert(value, unit, system);
   return `${formatNumber(c.value, digits)} ${c.unit}`;
+}
+
+// Replace {q:value:unit[:digits]} tokens in text. `wrap(value, unit, digits)`
+// returns the replacement (plain text, or a live-updating span).
+export function fillQuantities(text, wrap) {
+  return text.replace(/\{q:(-?[\d.]+):([^:}]+)(?::(\d))?\}/g, (_, v, u, d) => wrap(Number(v), u, Number(d || 0)));
+}
+
+// Monotone cubic interpolation (Fritsch–Carlson) through [t, ...values] key
+// points sorted by t. Smooth, passes through every key point, and never
+// overshoots between them (so altitude can't dip below zero before landing).
+export function monotoneTrack(keys) {
+  const n = keys.length;
+  const ts = keys.map((k) => k[0]);
+  const dims = keys[0].length - 1;
+  const slopes = [];
+  for (let d = 0; d < dims; d++) {
+    const y = keys.map((k) => k[d + 1]);
+    const delta = [];
+    for (let i = 0; i < n - 1; i++) delta.push((y[i + 1] - y[i]) / (ts[i + 1] - ts[i]));
+    const m = new Array(n);
+    m[0] = delta[0]; m[n - 1] = delta[n - 2];
+    for (let i = 1; i < n - 1; i++) m[i] = delta[i - 1] * delta[i] <= 0 ? 0 : (delta[i - 1] + delta[i]) / 2;
+    for (let i = 0; i < n - 1; i++) {
+      if (delta[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+      const a = m[i] / delta[i], b = m[i + 1] / delta[i], h = a * a + b * b;
+      if (h > 9) { const s = 3 / Math.sqrt(h); m[i] = s * a * delta[i]; m[i + 1] = s * b * delta[i]; }
+    }
+    slopes.push({ y, m });
+  }
+  const start = ts[0], end = ts[n - 1];
+  return {
+    start, end,
+    at(t) {
+      t = Math.min(Math.max(t, start), end);
+      let i = 0;
+      while (i < n - 2 && t > ts[i + 1]) i++;
+      const h = ts[i + 1] - ts[i], u = (t - ts[i]) / h;
+      const h00 = 2 * u ** 3 - 3 * u ** 2 + 1, h10 = u ** 3 - 2 * u ** 2 + u, h01 = -2 * u ** 3 + 3 * u ** 2, h11 = u ** 3 - u ** 2;
+      return slopes.map(({ y, m }) => h00 * y[i] + h10 * h * m[i] + h01 * y[i + 1] + h11 * h * m[i + 1]);
+    },
+  };
 }

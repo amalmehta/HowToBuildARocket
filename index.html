@@ -3,9 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>How to Build a Rocket</title>
+  <title>How to Build a Rocket: Falcon 9 from scratch, in 3D</title>
   <meta name="description" content="A from-scratch roadmap to an orbital rocket, using Falcon 9 as the worked example: the physics, engineering, materials and costs, with interactive 3D models.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2c4 4 5 9 5 14v8h-10v-8c0-5 1-10 5-14z' fill='%23eb6834'/%3E%3Cpath d='M11 20l-4 6h4zM21 20l4 6h-4z' fill='%23888'/%3E%3C/svg%3E">
+  <link rel="canonical" href="https://amalmehta.github.io/HowToBuildARocket/">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="How to Build a Rocket">
+  <meta property="og:title" content="How to Build a Rocket">
+  <meta property="og:description" content="A from-scratch roadmap to an orbital rocket, using Falcon 9 as the worked example, with interactive 3D models.">
+  <meta property="og:url" content="https://amalmehta.github.io/HowToBuildARocket/">
+  <meta property="og:image" content="https://amalmehta.github.io/HowToBuildARocket/share.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Falcon 9 3D model beside its headline specs">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="css/style.css">
   <script type="importmap">
     { "imports": {
@@ -24,6 +41,7 @@
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
+  <noscript><p class="noscript">This guide builds its tables, charts and 3D models with JavaScript. Turn JavaScript on to see them, or read the source on <a href="https://github.com/amalmehta/HowToBuildARocket">GitHub</a>.</p></noscript>
 
   <header class="topbar">
     <a class="brand" href="#top"><span class="logo" aria-hidden="true">▲</span> How to Build a Rocket</a>
@@ -35,7 +53,7 @@
       <a href="#cost">Cost</a>
       <a href="#flight">Flight</a>
     </nav>
-    <button class="icon-btn" type="button" data-open-settings aria-label="Settings (⌘,)" title="Settings (⌘,)">
+    <button class="icon-btn" type="button" data-open-settings aria-label="Settings" title="Settings (⌘,)" aria-keyshortcuts="Meta+Comma Control+Comma">
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
     </button>
   </header>
@@ -46,47 +64,47 @@
       <div class="hero-text">
         <p class="eyebrow">A from-scratch guide, using Falcon 9 as the example</p>
         <h1>How to build a rocket</h1>
-        <p class="lede">Getting to orbit means reaching about <span id="orbit-speed"></span> sideways, 200 km up, without the vehicle shaking apart, melting or running out of propellant. This guide covers what it takes: the roadmap, the physics, the engineering, the materials and the money. Falcon 9 is the reference throughout.</p>
+        <p class="lede">Getting to orbit means reaching about <span id="orbit-speed"></span> sideways, <span class="q" data-v="200" data-u="km" data-d="0">200 km</span> up, without the vehicle shaking apart, melting or running out of propellant. This guide covers what it takes: the roadmap, the physics, the engineering, the materials and the money. Falcon 9 is the reference throughout.</p>
         <div id="specs" class="stats"></div>
         <p class="small muted">Falcon 9 Block 5 figures. <span data-src="spacex"></span></p>
       </div>
       <figure class="viewer-card">
-        <div id="rocket3d" class="viewer tall" aria-label="Interactive 3D model of Falcon 9. Drag to rotate, scroll to zoom."></div>
+        <div id="rocket3d" class="viewer tall" aria-busy="true" role="img" aria-label="Interactive 3D model of Falcon 9. Drag to rotate, scroll or pinch to zoom. The part buttons below describe each part."><p class="loading3d">Loading 3D model…</p></div>
         <div class="viewer-controls">
           <label class="toggle"><input type="checkbox" id="explode"> Exploded view</label>
-          <span class="muted small">Drag to rotate · scroll to zoom · click a part</span>
+          <span class="muted viewer-hint">Drag or use arrow keys to rotate · <span class="kbd-mod">⌘</span>+scroll, pinch or +/− to zoom · click a part</span>
         </div>
         <div id="part-info" class="part-info" aria-live="polite"><p class="muted">Click any part of the rocket, or pick one below.</p></div>
-        <div id="part-buttons" class="chips"></div>
+        <div id="part-buttons" class="chips" role="group" aria-label="Rocket parts (press again to clear)"></div>
       </figure>
     </section>
 
     <!-- Roadmap -->
-    <section id="roadmap" class="section">
+    <section id="roadmap" class="section" aria-labelledby="roadmap-title">
       <header class="section-head">
         <p class="eyebrow">01 · Roadmap</p>
-        <h2>From nothing to orbit in ten phases</h2>
-        <p>The order SpaceX actually followed, from incorporation in 2002 to reusable Block 5 boosters in 2018. Several phases run in parallel, but engine development usually takes the longest. Costs are rough ranges for a new company today.</p>
+        <h2 id="roadmap-title">From nothing to orbit in ten phases</h2>
+        <p>The order SpaceX actually followed, from incorporation in 2002 to reusable Block 5 boosters in 2018. Several phases run in parallel, but engine development usually takes the longest. Costs are rough ranges for a new company today. Phase costs leave out staff, which the budget in the Cost section counts separately.</p>
       </header>
       <ol id="roadmap-list" class="roadmap"></ol>
     </section>
 
     <!-- Science -->
-    <section id="science" class="section">
+    <section id="science" class="section" aria-labelledby="science-title">
       <header class="section-head">
         <p class="eyebrow">02 · The hard science</p>
-        <h2>Why orbit is so hard</h2>
+        <h2 id="science-title">Why orbit is so hard</h2>
         <p>Orbit isn’t about going up. It’s about going sideways fast enough that the ground curves away beneath you as fast as you fall towards it. All the difficulty comes from one equation.</p>
       </header>
 
       <div class="grid-2">
         <article class="card">
           <h3>The rocket equation</h3>
-          <p class="equation" aria-label="delta v equals I s p times g zero times the natural log of m zero over m f">Δv = I<sub>sp</sub> · g<sub>0</sub> · ln(m<sub>0</sub> / m<sub>f</sub>)</p>
+          <p class="equation"><span aria-hidden="true">Δv = I<sub>sp</sub> · g<sub>0</sub> · ln(m<sub>0</sub> / m<sub>f</sub>)</span><span class="sr-only">Delta v equals I s p, times g zero, times the natural log of m zero over m f.</span></p>
           <ul class="defs">
             <li><b>Δv</b>: the change in velocity the rocket can produce</li>
-            <li><b>I<sub>sp</sub></b>: specific impulse, a measure of engine efficiency in seconds (Merlin: 282 s at sea level, 348 s in vacuum)</li>
-            <li><b>g<sub>0</sub></b>: 9.81 m/s²</li>
+            <li><b>I<sub>sp</sub></b>: specific impulse, a measure of engine efficiency in seconds (Merlin 1D: 282 s at sea level, 311 s in vacuum; the second stage’s Merlin Vacuum: 348 s)</li>
+            <li><b>g<sub>0</sub></b>: standard gravity, 9.81 m/s²</li>
             <li><b>m<sub>0</sub> / m<sub>f</sub></b>: full mass ÷ empty mass (the mass ratio)</li>
           </ul>
           <p>Because of the logarithm, each extra km/s costs exponentially more propellant. To reach about 9 km/s with kerosene engines, a single stage would need to be over 94% propellant by mass. That’s close to the limit of how thin a tank wall can be. This is why rockets have <strong>stages</strong>: you throw away empty tank mass partway up so you aren’t still accelerating it.</p>
@@ -95,36 +113,37 @@
 
         <article class="card">
           <h3>The velocity budget</h3>
-          <p>To reach a 200 km orbit you need orbital speed plus everything lost on the way up. Launching east gives you Earth’s spin for free (−370 m/s from Florida).</p>
+          <p>To reach a 200 km orbit you need orbital speed plus everything lost on the way up. Launching east gives you Earth’s spin for free: about <span class="q" data-v="410" data-u="m/s">410 m/s</span> from Florida.</p>
           <div id="chart-dv"></div>
-          <p class="small muted">Total needed after the rotation credit: about 8,970 m/s. Loss figures are typical textbook values for a large liquid-fuelled rocket.</p>
+          <p class="small muted">Total needed after the rotation credit: about <span class="q" data-v="8930" data-u="m/s">8,930 m/s</span>. The losses are at the optimistic end of the usual range; most estimates put Earth to low orbit at 9.3–10 km/s. <span data-src="dvBudget"></span></p>
         </article>
       </div>
 
       <article class="card calc-card">
         <h3>Try it: fly a Falcon 9 with the rocket equation</h3>
-        <p>Start from Falcon 9’s estimated stage masses. Then change the payload, keep propellant back for landing, or swap in a worse engine and see whether it still reaches orbit.</p>
+        <p>Start from Falcon 9’s estimated stage masses. Then change the payload, keep propellant back for landing, or try a different engine, and see whether it still reaches orbit.</p>
         <form id="calc" class="calc" onsubmit="return false">
-          <label>Payload <output data-for="payload"></output><input type="range" name="payload" min="0" max="30" step="0.1" value="15.6"></label>
-          <label>Booster propellant kept for landing <output data-for="reserve" data-u="%"></output><input type="range" name="reserve" min="0" max="25" step="1" value="10"></label>
-          <label>Stage 1 I<sub>sp</sub> (average) <output data-for="s1Isp" data-u="s"></output><input type="range" name="s1Isp" min="200" max="340" step="1" value="296"></label>
-          <label>Stage 2 I<sub>sp</sub> <output data-for="s2Isp" data-u="s"></output><input type="range" name="s2Isp" min="250" max="460" step="1" value="348"></label>
-          <label>Stage 1 propellant <output data-for="s1Prop"></output><input type="range" name="s1Prop" min="200" max="500" step="1" value="395.7"></label>
-          <label>Stage 2 propellant <output data-for="s2Prop"></output><input type="range" name="s2Prop" min="40" max="150" step="1" value="92.67"></label>
+          <div class="field"><label for="calc-payload">Payload</label><output data-for="payload" for="calc-payload"></output><input id="calc-payload" type="range" name="payload" min="0" max="30" step="0.1" value="15.6"></div>
+          <div class="field"><label for="calc-reserve">Booster propellant kept for landing</label><output data-for="reserve" data-u="%" for="calc-reserve"></output><input id="calc-reserve" type="range" name="reserve" min="0" max="25" step="1" value="10"></div>
+          <div class="field"><label for="calc-s1Isp">Stage 1 I<sub>sp</sub> (average)</label><output data-for="s1Isp" data-u="s" for="calc-s1Isp"></output><input id="calc-s1Isp" type="range" name="s1Isp" min="200" max="340" step="1" value="296"></div>
+          <div class="field"><label for="calc-s2Isp">Stage 2 I<sub>sp</sub></label><output data-for="s2Isp" data-u="s" for="calc-s2Isp"></output><input id="calc-s2Isp" type="range" name="s2Isp" min="250" max="460" step="1" value="348"></div>
+          <div class="field"><label for="calc-s1Prop">Stage 1 propellant</label><output data-for="s1Prop" for="calc-s1Prop"></output><input id="calc-s1Prop" type="range" name="s1Prop" min="200" max="500" step="0.1" value="395.7"></div>
+          <div class="field"><label for="calc-s2Prop">Stage 2 propellant</label><output data-for="s2Prop" for="calc-s2Prop"></output><input id="calc-s2Prop" type="range" name="s2Prop" min="40" max="150" step="0.01" value="92.67"></div>
           <button type="button" class="btn ghost" data-reset>Reset to Falcon 9</button>
         </form>
-        <div id="calc-out" class="calc-out" aria-live="polite"></div>
-        <p class="small muted">Ideal rocket equation, with the losses above added to the velocity needed. Stage masses are public estimates: dry 25.6 t + 3.9 t, fairing 1.7 t. <span data-src="wiki"></span></p>
+        <div id="calc-out" class="calc-out"></div>
+        <p id="calc-verdict" class="sr-only" aria-live="polite"></p>
+        <p class="small muted">Ideal rocket equation, with the losses above added to the velocity needed. Stage masses are public estimates (dry <span class="q" data-v="25.6" data-u="t" data-d="1">25.6 t</span> and <span class="q" data-v="3.9" data-u="t" data-d="1">3.9 t</span>, fairing <span class="q" data-v="1.7" data-u="t" data-d="1">1.7 t</span>), so liftoff mass won’t match SpaceX’s published total exactly. The fairing is carried until about 35 s into the second-stage burn. <span data-src="wiki"></span></p>
       </article>
 
       <div class="grid-3">
         <article class="card">
           <h3>Thrust and weight</h3>
-          <p>At liftoff, nine Merlins produce 7.6 MN against a weight of 5.4 MN, a thrust-to-weight ratio of about 1.4. As propellant burns off the rocket gets lighter, so acceleration rises. The engines throttle down near max-Q and again before cutoff to keep the load under about 4–5 g.</p>
+          <p>At liftoff, nine Merlins produce <span class="q" data-v="7.6" data-u="MN" data-d="1">7.6 MN</span> against a weight of <span class="q" data-v="5.4" data-u="MN" data-d="1">5.4 MN</span>, a thrust-to-weight ratio of about 1.4. As propellant burns off the rocket gets lighter, so acceleration rises. The engines throttle down near max-Q (the point of greatest aerodynamic stress, about 72 s in), and again before cutoff to keep acceleration within what the payload can take.</p>
         </article>
         <article class="card">
           <h3>Chemistry</h3>
-          <p>Kerosene (RP-1) burns with liquid oxygen at about 2.36 kg of oxygen per kg of fuel, reaching roughly 3,400 °C. The exhaust is mostly CO₂, CO and H₂O. Hydrogen would give a higher I<sub>sp</sub>, but it is 11 times less dense, so the tanks have to be much bigger. Kerosene keeps the rocket compact and cheap.</p>
+          <p>RP-1, a refined rocket-grade kerosene, burns with liquid oxygen (LOX). Engines run slightly fuel-rich, with less oxygen than full combustion would use, which keeps the flame around <span class="q" data-v="3400" data-u="°C">3,400 °C</span> and the hardware alive. The exhaust is mostly water vapour and carbon monoxide, plus CO₂ and hydrogen. Liquid hydrogen would give a higher I<sub>sp</sub>, but it is only about a tenth as dense, so the tanks have to be much bigger. Kerosene keeps the rocket compact and cheap.</p>
         </article>
         <article class="card">
           <h3>Nozzles and air pressure</h3>
@@ -132,7 +151,7 @@
         </article>
         <article class="card">
           <h3>Max-Q</h3>
-          <p>Dynamic pressure, ½ρv², peaks about 72 seconds in, when the rocket is fast but the air is still fairly thick. The structure is sized for this moment. Engines throttle down to get through it.</p>
+          <p>Dynamic pressure (½ρv², where ρ is air density and v is speed) peaks about 72 seconds in, when the rocket is fast but the air is still fairly thick. The structure is sized for this moment. Engines throttle down to get through it.</p>
         </article>
         <article class="card">
           <h3>Gravity turn</h3>
@@ -146,16 +165,16 @@
     </section>
 
     <!-- Engineering -->
-    <section id="engineering" class="section">
+    <section id="engineering" class="section" aria-labelledby="engineering-title">
       <header class="section-head">
         <p class="eyebrow">03 · Engineering</p>
-        <h2>The engine is the rocket</h2>
-        <p>Merlin 1D is a gas-generator engine. A small amount of propellant is burned to drive a turbine, which spins the pumps that push the rest into the main chamber at high pressure. That turbine exhaust is then dumped overboard: a little less efficient, but much simpler to build than closed-cycle designs.</p>
+        <h2 id="engineering-title">The engine is the rocket</h2>
+        <p>Merlin 1D is a gas-generator engine. A small amount of propellant is burned to drive a turbine, which spins the pumps that push the rest into the main chamber at high pressure. That turbine exhaust is then dumped overboard: a little less efficient, but much simpler to build than closed-cycle (staged-combustion) engines, which feed that exhaust back into the main chamber.</p>
       </header>
 
       <div class="grid-engine">
         <figure class="viewer-card">
-          <div id="engine3d" class="viewer" aria-label="Interactive 3D model of the Merlin 1D engine"></div>
+          <div id="engine3d" class="viewer" aria-busy="true" role="img" aria-label="Interactive 3D model of the Merlin 1D engine: bell nozzle, combustion chamber, turbopump, gas-generator exhaust and the blue LOX and amber RP-1 lines. Cutaway slices it open to show the chamber inside; Hot fire lights the exhaust plume."><p class="loading3d">Loading 3D engine…</p></div>
           <div class="viewer-controls">
             <label class="toggle"><input type="checkbox" id="cutaway"> Cutaway</label>
             <label class="toggle"><input type="checkbox" id="hotfire"> Hot fire</label>
@@ -166,7 +185,7 @@
           <div id="engine-facts" class="card"></div>
           <figure class="card cycle">
             <figcaption><strong>Gas-generator cycle</strong>: how propellant gets from tank to nozzle</figcaption>
-            <svg viewBox="0 0 420 250" role="img" aria-label="Flow diagram: LOX and RP-1 tanks feed a turbopump. A small share goes to the gas generator which drives the turbine and dumps its exhaust overboard. RP-1 cools the nozzle walls before entering the injector with the LOX; they burn in the chamber and exit through the nozzle.">
+            <div class="cycle-scroll"><svg viewBox="0 0 420 250" role="img" aria-label="Flow diagram: LOX and RP-1 tanks feed a turbopump. A small share goes to the gas generator which drives the turbine and dumps its exhaust overboard. RP-1 cools the nozzle walls before entering the injector with the LOX; they burn in the chamber and exit through the nozzle.">
               <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
               <g class="dg">
                 <rect x="10" y="10" width="90" height="38" rx="6" class="lox"/><text x="55" y="34">LOX tank</text>
@@ -175,7 +194,7 @@
                 <rect x="10" y="130" width="110" height="38" rx="6"/><text x="65" y="148">Gas</text><text x="65" y="161">generator</text>
                 <rect x="160" y="130" width="100" height="38" rx="6"/><text x="210" y="154">Injector</text>
                 <rect x="160" y="190" width="100" height="46" rx="6" class="hot"/><text x="210" y="210">Chamber</text><text x="210" y="225">+ nozzle</text>
-                <rect x="300" y="130" width="110" height="38" rx="6" class="rp1"/><text x="355" y="148">Regen cooling</text><text x="355" y="161">(nozzle walls)</text>
+                <rect x="300" y="130" width="110" height="38" rx="6" class="rp1"/><text x="355" y="148">Regenerative</text><text x="355" y="161">cooling (walls)</text>
                 <path d="M55 48 V60 H170 V70" class="flow lox-f" marker-end="url(#ah)"/>
                 <path d="M365 48 V60 H250 V70" class="flow rp1-f" marker-end="url(#ah)"/>
                 <path d="M150 110 V120 H95 V130" class="flow" marker-end="url(#ah)"/>
@@ -186,29 +205,29 @@
                 <path d="M65 168 V230 H20" class="flow dark-f" marker-end="url(#ah)"/><text x="70" y="244" class="small-t">exhaust overboard</text>
                 <path d="M30 130 V90 H138" class="flow dark-f" marker-end="url(#ah)"/><text x="36" y="84" class="small-t">hot gas spins turbine</text>
               </g>
-            </svg>
+            </svg></div>
           </figure>
         </div>
       </div>
 
       <div class="grid-3">
-        <article class="card"><h3>Propulsion</h3><p>Nine engines on the first stage give engine-out capability and lots of flight data from a single design. Engines gimbal (tilt) to steer. TEA-TEB, a pyrophoric fluid that ignites on contact with air, lights them, and they can be restarted in flight.</p></article>
-        <article class="card"><h3>Structures</h3><p>The tanks are pressurised with helium, which also makes them stiffer. A common dome separates LOX from RP-1. Propellants are densified (LOX at −207 °C, RP-1 at −7 °C) so the same tanks hold about 10% more.</p></article>
+        <article class="card"><h3>Propulsion</h3><p>Nine engines on the first stage let the rocket finish its mission even if one fails, and give lots of flight data from a single design. Engines gimbal (tilt) to steer. A mix of two chemicals, TEA-TEB (triethylaluminium–triethylborane), which bursts into flame on contact with oxygen, lights them, so they can be restarted in flight.</p></article>
+        <article class="card"><h3>Structures</h3><p>The tanks are pressurised with helium, which also makes them stiffer. A common dome separates LOX from RP-1. Propellants are densified (LOX at <span class="q" data-v="-207" data-u="°C">−207 °C</span>, RP-1 at <span class="q" data-v="-7" data-u="°C">−7 °C</span>) so the same tanks hold roughly 5–10% more. <span data-src="wikiFT"></span></p></article>
         <article class="card"><h3>Avionics and software</h3><p>Triple-redundant flight computers vote on every decision. Guidance re-plans the trajectory in real time. If anything fails, an autonomous flight termination system can end the flight safely without anyone on the ground.</p></article>
-        <article class="card"><h3>Guidance for landing</h3><p>Landing is solved on board as a convex optimisation problem: find the engine commands that land on the target using the least fuel. Grid fins steer in thick air, and cold-gas nitrogen thrusters control attitude in thin air.</p></article>
+        <article class="card"><h3>Guidance for landing</h3><p>The landing path is worked out on board, many times a second, by a solver that finds the engine commands reaching the target with the least fuel (a convex optimisation problem). Grid fins steer in thick air, and cold-gas nitrogen thrusters control which way the booster points in thin air. <span data-src="blackmore"></span></p></article>
         <article class="card"><h3>Ground systems</h3><p>Stages are integrated horizontally in a hangar. A transporter-erector lifts the rocket and supplies propellant, power and data until liftoff. Propellant loading starts only 35 minutes before launch, so the densified propellant stays cold.</p></article>
-        <article class="card"><h3>Testing</h3><p>Test the way you fly. Every engine is hot-fired before delivery, every stage is static-fired, and the vehicle does a short static fire on the pad before its first flight. Most problems are caught in testing, not in flight.</p></article>
+        <article class="card"><h3>Testing</h3><p>Test the way you fly. Every engine is hot-fired before delivery, every stage is static-fired, and new vehicles have usually done a short static fire on the pad before their first flight. Most problems are caught in testing, not in flight.</p></article>
       </div>
     </section>
 
     <!-- Materials -->
-    <section id="materials" class="section">
+    <section id="materials" class="section" aria-labelledby="materials-title">
       <header class="section-head">
         <p class="eyebrow">04 · Materials</p>
-        <h2>What it’s made of, and why</h2>
-        <p>Every gram of structure is a gram of payload you can’t carry. Each material is chosen for strength per unit weight at the temperatures that part sees, from −207 °C oxygen to 3,400 °C exhaust.</p>
+        <h2 id="materials-title">What it’s made of, and why</h2>
+        <p>Every gram of structure is a gram of payload you can’t carry. Each material is chosen for strength per unit weight at the temperatures that part sees, from <span class="q" data-v="-207" data-u="°C">−207 °C</span> oxygen to <span class="q" data-v="3400" data-u="°C">3,400 °C</span> exhaust.</p>
       </header>
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Materials table (scrolls sideways on small screens)">
         <table id="materials-table" class="data">
           <thead><tr><th scope="col">Part</th><th scope="col">Material</th><th scope="col">Why</th><th scope="col">Temperatures</th></tr></thead>
           <tbody></tbody>
@@ -217,10 +236,10 @@
     </section>
 
     <!-- Cost -->
-    <section id="cost" class="section">
+    <section id="cost" class="section" aria-labelledby="cost-title">
       <header class="section-head">
         <p class="eyebrow">05 · Cost</p>
-        <h2>What it costs</h2>
+        <h2 id="cost-title">What it costs</h2>
         <p>SpaceX’s main innovation was economic. It built most parts in-house, kept the team small, used one engine design for both stages, and then reused the most expensive stage.</p>
       </header>
 
@@ -229,64 +248,65 @@
           <h3>Developing Falcon 9</h3>
           <p class="small">NASA ran its cost model on Falcon 9’s design and compared the result with what SpaceX reported spending.</p>
           <div id="chart-dev"></div>
-          <p class="small muted">The NASA model (NAFCOM, 2011) estimates are for Falcon 9 only. The SpaceX figure is company-reported and includes Falcon 1. <span data-src="nasaCost"></span></p>
+          <p class="small muted">NASA’s 2011 estimates, from its NAFCOM cost model, cover Falcon 9 only, in FY2010 dollars. The first run assumed a cost-plus contract; the update, after NASA visited SpaceX, also modelled a fixed-price one. The SpaceX figure is company-reported, includes Falcon 1, and was partly paid for by NASA’s COTS programme. <span data-src="nasaCost"></span> <span data-src="nasaMarket"></span></p>
         </article>
         <article class="card">
-          <h3>Cost to orbit, per kilogram</h3>
-          <p class="small">Inflation-adjusted to 2018 dollars, at full expendable capacity.</p>
+          <h3>Cost to orbit, per <span data-metric="kilogram" data-imperial="pound">kilogram</span></h3>
+          <p class="small">Launch price ÷ the most a rocket can lift to low Earth orbit. Saturn V and Shuttle are inflation-adjusted to 2018 dollars; Falcon figures are 2018 list prices. At 2026’s $74M list price, Falcon 9 works out to about <span data-metric="$3,250/kg" data-imperial="$1,470/lb">$3,250/kg</span>.</p>
           <div id="chart-kg"></div>
           <p class="small muted">Jones (2018), Table A2. <span data-src="jones"></span></p>
         </article>
         <article class="card">
           <h3>Where one flight’s money goes</h3>
-          <p class="small">Order-of-magnitude estimates assembled from SpaceX public statements. The company doesn’t publish its internal costs.</p>
+          <p class="small">This split is our own order-of-magnitude estimate. SpaceX doesn’t publish its internal costs; the only figure attributed to the company is the second stage’s roughly $10M.</p>
           <div id="chart-flight"></div>
           <p class="small" id="flight-total"></p>
         </article>
         <article class="card">
           <h3>Your budget, starting from zero</h3>
-          <p class="small">Rough ranges for a new company building a Falcon 9-class rocket today. NASA’s COTS programme paid SpaceX about $396M in milestone payments. <span data-src="nasaCots"></span></p>
+          <p class="small">Rough ranges for a new company building a Falcon 9-class rocket today. NASA’s COTS programme awarded SpaceX $278M in 2006, later raised to about $396M in milestone payments. <span data-src="nasaCots"></span></p>
           <table id="budget-table" class="data compact"><thead><tr><th scope="col">Item</th><th scope="col" class="num">Range</th></tr></thead><tbody></tbody></table>
         </article>
       </div>
     </section>
 
     <!-- Flight -->
-    <section id="flight" class="section">
+    <section id="flight" class="section" aria-labelledby="flight-title">
       <header class="section-head">
         <p class="eyebrow">06 · Flight profile</p>
-        <h2>Ten minutes from pad to orbit</h2>
-        <p>A typical mission with a droneship landing. White: both stages together. Orange: the second stage to orbit. Blue: the booster coming back. Altitudes are exaggerated so the climb is visible against the size of the Earth.</p>
+        <h2 id="flight-title">Ten minutes from pad to orbit</h2>
+        <p>A typical mission with a droneship landing. White: both stages together. Orange: the second stage to orbit. Blue: the booster coming back. Altitudes are exaggerated 5× by default so the climb is visible against the size of the Earth; set Altitude exaggeration to 1× for true scale.</p>
       </header>
       <figure class="viewer-card flight-card">
-        <div id="flight3d" class="viewer wide" aria-label="3D animation of a Falcon 9 flight over the curved Earth"></div>
+        <div id="flight3d" class="viewer wide" aria-busy="true" role="img" aria-label="3D animation of a Falcon 9 flight over the curved Earth: the white path is both stages together, orange is the second stage climbing to orbit, blue is the booster flying back to the droneship. The event list below describes each step."><p class="loading3d">Loading 3D flight…</p></div>
         <div class="flight-ui">
           <div class="flight-row">
-            <button type="button" class="btn" id="flight-play" aria-pressed="false">Play</button>
-            <input type="range" id="flight-time" min="0" max="600" step="1" value="0" aria-label="Mission time">
-            <label class="small">Altitude ×
-              <select id="exaggeration"><option value="1">1</option><option value="5" selected>5</option><option value="10">10</option></select>
+            <button type="button" class="btn" id="flight-play">Play</button>
+            <input type="range" id="flight-time" min="0" max="600" step="1" value="600" aria-label="Mission time">
+            <label class="small">Altitude exaggeration
+              <select id="exaggeration"><option value="1">1× (true scale)</option><option value="5" selected>5×</option><option value="10">10×</option></select>
             </label>
             <button type="button" class="btn ghost" id="flight-reframe">Recentre</button>
           </div>
-          <p id="flight-status" class="flight-status" aria-live="polite"></p>
+          <p id="flight-status" class="flight-status" aria-live="polite">Loading the flight…</p>
+          <p id="flight-readout" class="flight-readout small muted"></p>
           <ol id="flight-events" class="events"></ol>
         </div>
       </figure>
     </section>
 
-    <section id="sources" class="section">
+    <section id="sources" class="section" aria-labelledby="sources-title">
       <header class="section-head">
         <p class="eyebrow">Sources and caveats</p>
-        <h2>Where the numbers come from</h2>
-        <p>Headline specs come from SpaceX. Development costs come from NASA. Stage masses, chamber conditions and per-flight costs are public estimates and are marked as such. This site is an educational overview, not an engineering procedure. Real rocket work takes trained teams, licensed sites and serious safety controls.</p>
+        <h2 id="sources-title">Where the numbers come from</h2>
+        <p>Headline specs come from SpaceX. Development cost estimates come from NASA’s NAFCOM model, SpaceX’s own figure is company-reported, and cost per kilogram comes from Jones (2018). Stage masses, chamber conditions and per-flight costs are public estimates and are marked as such. This site is an educational overview, not an engineering procedure. Real rocket work takes trained teams, licensed sites and serious safety controls.</p>
       </header>
       <ul id="sources-list" class="sources"></ul>
     </section>
   </main>
 
   <footer class="footer">
-    <p>How to Build a Rocket · An educational project, not affiliated with SpaceX · <a href="https://github.com/amalmehta/HowToBuildARocket">Source on GitHub</a></p>
+    <p>How to Build a Rocket · An educational project, not affiliated with SpaceX · <a href="https://github.com/amalmehta/HowToBuildARocket">Source on GitHub</a><span class="footer-feedback-wrap"> · <button type="button" class="footer-feedback" data-open-feedback>Send feedback</button></span></p>
   </footer>
 
   <button type="button" class="feedback-tab" data-open-feedback>Feedback</button>
@@ -320,6 +340,7 @@
         <label><input type="radio" name="quality" value="low"> Low (faster)</label>
       </fieldset>
       <fieldset><legend>Motion</legend>
+        <label><input type="radio" name="motion" value="system"> Match system</label>
         <label><input type="radio" name="motion" value="full"> Full</label>
         <label><input type="radio" name="motion" value="reduced"> Reduced</label>
         <label><input type="checkbox" name="autorotate"> Slowly rotate 3D models</label>
