@@ -150,8 +150,8 @@ export const DEV_COST = [
 export const COST_PER_KG = [
   { label: 'Space Shuttle', value: 61720, spacex: false, src: 'jones' },
   { label: 'Saturn V', value: 5200, spacex: false, src: 'jones' },
-  { label: 'Falcon 9', value: 2720, spacex: true, src: 'jones' },
-  { label: 'Falcon Heavy', value: 1410, spacex: true, src: 'jones' },
+  { label: 'Falcon 9', value: 2720, spacex: true, src: 'jones', note: 'About 1/23 of the Shuttle’s cost per kilogram' },
+  { label: 'Falcon Heavy', value: 1410, spacex: true, src: 'jones', note: 'About 1/44 of the Shuttle’s cost per kilogram' },
 ];
 
 // Where one reused Falcon 9 flight's cost goes. This split is the site's own

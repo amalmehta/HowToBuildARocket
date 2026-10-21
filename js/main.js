@@ -89,7 +89,7 @@ function chartSpecs() {
     },
     kg: {
       caption: `Launch cost per ${imperial() ? 'pound' : 'kilogram'} to low Earth orbit, 2018 dollars`,
-      rows: COST_PER_KG.map((d) => ({ label: d.label, value: imperial() ? d.value / 2.20462 : d.value, group: d.spacex ? 'spacex' : 'other' })),
+      rows: COST_PER_KG.map((d) => ({ label: d.label, value: imperial() ? d.value / 2.20462 : d.value, group: d.spacex ? 'spacex' : 'other', note: d.note })),
       groups, format: (v) => `$${formatNumber(v)}/${perMass}`, axisFormat: (v) => `$${formatNumber(v / 1000, 1)}k`,
     },
     flight: {
@@ -99,8 +99,8 @@ function chartSpecs() {
     },
     dv: {
       caption: `Velocity budget to a 200 km orbit, ${imperial() ? 'miles per hour' : 'metres per second'}`,
-      rows: DV_BUDGET.filter((d) => d.value > 0).map((d) => ({ label: d.label, value: convert(d.value, 'm/s', units()).value, note: d.note })),
-      format: (v) => `${formatNumber(v)} ${imperial() ? 'mph' : 'm/s'}`,
+      rows: DV_BUDGET.map((d) => ({ label: d.label, value: convert(d.value, 'm/s', units()).value, note: d.note })),
+      format: (v) => `${formatNumber(v)} ${imperial() ? 'mph' : 'm/s'}`, axisFormat: (v) => formatNumber(v),
     },
   };
 }
