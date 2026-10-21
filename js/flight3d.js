@@ -3,36 +3,22 @@
 // visible against the size of the Earth.
 import * as THREE from 'three';
 import { createViewer } from './viewer.js';
-import { FLIGHT_EVENTS } from './data.js';
-import { EARTH_RADIUS_KM } from './physics.js';
+import { FLIGHT_EVENTS, FLIGHT_TRACKS, END_TIME, SHIP_DOWNRANGE_KM } from './data.js';
+import { EARTH_RADIUS_KM, monotoneTrack } from './physics.js';
 
 const KM = 1 / 100;
 const RE = EARTH_RADIUS_KM * KM;
-export const END_TIME = 600;
+export { END_TIME };
 
-// Key points (time s, downrange km, altitude km). Smooth curves pass through them.
-const STACK = [[0, 0, 0], [40, 1, 6], [72, 8, 13], [110, 32, 36], [150, 80, 70]];
-const UPPER = [[150, 80, 70], [200, 170, 110], [300, 450, 165], [400, 850, 190], [530, 1650, 200], [600, 2196, 200]];
-const BOOSTER = [[153, 82, 72], [220, 200, 118], [280, 300, 128], [340, 420, 110], [400, 530, 60], [460, 590, 15], [500, 600, 3], [520, 600, 0]];
-
-// Sample a smooth path through key points, indexed by time.
+// Smooth path through the key points in data.js, indexed by time. Monotone
+// interpolation passes through every point without overshooting.
 function track(keys) {
-  const curve = new THREE.CatmullRomCurve3(keys.map(([t, x, h]) => new THREE.Vector3(t, x, h)), false, 'centripetal');
-  const pts = curve.getPoints(400);
-  return {
-    start: keys[0][0], end: keys[keys.length - 1][0],
-    at(t) {
-      t = Math.min(Math.max(t, this.start), this.end);
-      let lo = 0, hi = pts.length - 1;
-      while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (pts[mid].x <= t) lo = mid; else hi = mid; }
-      const a = pts[lo], b = pts[hi];
-      const u = b.x === a.x ? 0 : (t - a.x) / (b.x - a.x);
-      return { x: a.y + (b.y - a.y) * u, h: Math.max(0, a.z + (b.z - a.z) * u) };
-    },
-  };
+  const m = monotoneTrack(keys);
+  return { start: m.start, end: m.end, at(t) { const [x, h] = m.at(t); return { x, h: Math.max(0, h) }; } };
 }
 
-export const TRACKS = { stack: track(STACK), upper: track(UPPER), booster: track(BOOSTER) };
+export const TRACKS = { stack: track(FLIGHT_TRACKS.stack), upper: track(FLIGHT_TRACKS.upper), booster: track(FLIGHT_TRACKS.booster) };
+const MECO = TRACKS.stack.end, SEP = TRACKS.booster.start, TOUCHDOWN = TRACKS.booster.end;
 
 export function mountFlight(container, ui) {
   const viewer = createViewer(container, { position: [0, 0, 1], target: [0, 0, 0], fov: 35, near: 0.05, far: 5000, spin: false });
@@ -112,44 +98,52 @@ export function mountFlight(container, ui) {
   let follow = true;
   function update() {
     pad.position.copy(toWorld(0, 0));
-    ship.position.copy(toWorld(600, 0));
-    fillTrail(trails.stack, TRACKS.stack, 0, Math.min(time, 150));
-    fillTrail(trails.upper, TRACKS.upper, 150, Math.max(150, Math.min(time, END_TIME)));
-    fillTrail(trails.booster, TRACKS.booster, 153, Math.max(153, Math.min(time, 520)));
+    ship.position.copy(toWorld(SHIP_DOWNRANGE_KM, 0));
+    fillTrail(trails.stack, TRACKS.stack, 0, Math.min(time, MECO));
+    fillTrail(trails.upper, TRACKS.upper, MECO, Math.max(MECO, Math.min(time, END_TIME)));
+    fillTrail(trails.booster, TRACKS.booster, SEP, Math.max(SEP, Math.min(time, TOUCHDOWN)));
 
-    const onStack = time < 153;
-    pointAlong(upperDot, time < 150 ? TRACKS.stack : TRACKS.upper, time);
+    const onStack = time < SEP;
+    pointAlong(upperDot, time < MECO ? TRACKS.stack : TRACKS.upper, time);
     boosterDot.visible = !onStack;
     if (!onStack) pointAlong(boosterDot, TRACKS.booster, time);
 
-    const u = time < 150 ? TRACKS.stack.at(time) : TRACKS.upper.at(time);
+    const u = time < MECO ? TRACKS.stack.at(time) : TRACKS.upper.at(time);
     const b = TRACKS.booster.at(time);
-    ui.onUpdate?.({
-      time, upper: u, booster: onStack ? null : b,
-      event: [...FLIGHT_EVENTS].reverse().find((e) => e.t <= time) || FLIGHT_EVENTS[0],
-    });
+    let event = FLIGHT_EVENTS[0];
+    for (const e of FLIGHT_EVENTS) if (e.t <= time) event = e;
+    ui.onUpdate?.({ time, upper: u, booster: onStack ? null : b, event });
   }
 
+  // Where the camera looks: a point above the action, from the side.
+  const aim = () => toWorld(Math.min(900, 300 + time), 60);
+  const CAMERA_OFFSET = new THREE.Vector3(0, 5, 30);
   function frameCamera() {
-    // Look at the region around the action, from the side.
-    const mid = toWorld(Math.min(900, 300 + time), 60);
+    const mid = aim();
     controls.target.copy(mid);
-    camera.position.copy(mid.clone().add(new THREE.Vector3(0, 5, 30)));
+    camera.position.copy(mid).add(CAMERA_OFFSET);
   }
   frameCamera();
   controls.addEventListener('start', () => { follow = false; });
 
+  const step = new THREE.Vector3();
+  const advance = (dt) => {
+    time += dt * 20; // 20× real time
+    if (time >= END_TIME) { time = END_TIME; playing = false; ui.onPlayState?.(false); }
+    update();
+  };
   viewer.onFrame = (dt) => {
-    if (playing) {
-      time += dt * 20; // 20× real time
-      if (time >= END_TIME) { time = END_TIME; playing = false; ui.onPlayState?.(false); }
-      update();
-      if (follow && viewer.motion !== 'reduced') {
-        const mid = toWorld(Math.min(900, 300 + time), 100);
-        controls.target.lerp(mid, Math.min(1, dt * 2));
-      }
+    if (!playing) return;
+    advance(dt);
+    if (follow && viewer.motion !== 'reduced') {
+      // Slide target and camera together so the viewing angle stays put.
+      step.copy(aim()).sub(controls.target).multiplyScalar(Math.min(1, dt * 2));
+      controls.target.add(step);
+      camera.position.add(step);
     }
   };
+  // Pause rather than freeze silently when the scene scrolls off screen.
+  viewer.onVisibility = (on) => { if (!on && playing) { playing = false; ui.onPlayState?.(false); } };
 
   update();
   return {
