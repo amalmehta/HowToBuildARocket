@@ -28,30 +28,55 @@ function tooltip(host) {
   };
 }
 
-function niceMax(v) {
+// The smallest "round" axis maximum at or above v (1, 2, 2.5 or 5 × 10ⁿ).
+export function niceMax(v) {
+  if (!(v > 0)) return 1;
   const p = 10 ** Math.floor(Math.log10(v));
-  return [1, 2, 2.5, 5, 10].map((m) => m * p).find((m) => m >= v);
+  return [1, 2, 2.5, 5, 10].map((m) => m * p).find((m) => m >= v * (1 - 1e-12));
+}
+
+// Millions of dollars → "$390M", "$1.38B", "$0.4M" (no trailing zeros).
+export function money(millions) {
+  if (millions >= 1000) return `$${+(millions / 1000).toFixed(2)}B`;
+  if (millions < 1) return `$${+millions.toFixed(1)}M`;
+  return `$${+millions.toFixed(millions < 10 ? 1 : 0)}M`;
 }
 
 // rows: [{ label, value, group, note }]
 // groups: { key: { label, color } } — color is a CSS variable name
-export function barChart(host, { rows, groups, format, axisFormat = format, caption }) {
+// Returns { update(spec), destroy() } so the chart can change units in place.
+export function barChart(host, spec) {
+  let { rows, groups, format, axisFormat = format, caption } = spec;
   host.classList.add('chart');
   host.innerHTML = '';
 
-  if (groups && Object.keys(groups).length > 1) {
-    const legend = document.createElement('div');
-    legend.className = 'legend';
-    legend.innerHTML = Object.values(groups).map((g) => `<span><i style="background:var(${g.color})"></i>${g.label}</span>`).join('');
-    host.appendChild(legend);
-  }
+  const legend = document.createElement('div');
+  legend.className = 'legend';
+  host.appendChild(legend);
 
   const wrap = document.createElement('div');
   wrap.className = 'chart-plot';
   host.appendChild(wrap);
   const tip = tooltip(wrap);
 
+  const details = document.createElement('details');
+  details.className = 'table-view';
+  host.appendChild(details);
+
+  const renderLegend = () => {
+    const show = groups && Object.keys(groups).length > 1;
+    legend.hidden = !show;
+    legend.innerHTML = show ? Object.values(groups).map((g) => `<span><i style="background:var(${g.color})"></i>${g.label}</span>`).join('') : '';
+  };
+  const renderTable = () => {
+    const notes = rows.some((r) => r.note);
+    const body = rows.map((r) => `<tr><td>${r.label}</td><td class="num">${format(r.value)}</td>${notes ? `<td>${r.note || ''}</td>` : ''}</tr>`).join('');
+    details.innerHTML = `<summary>Show as table</summary><table><caption class="sr-only">${caption}</caption><thead><tr><th scope="col">Item</th><th scope="col" class="num">Value</th>${notes ? '<th scope="col">Note</th>' : ''}</tr></thead><tbody>${body}</tbody></table>`;
+  };
+
   const draw = () => {
+    tip.hide();
+    const focusedRow = wrap.querySelector('.bar-row:focus')?.dataset.i;
     wrap.querySelector('svg')?.remove();
     const W = Math.max(240, wrap.clientWidth);
     // Narrow screens put each label above its bar instead of beside it.
@@ -63,7 +88,7 @@ export function barChart(host, { rows, groups, format, axisFormat = format, capt
     const max = niceMax(Math.max(...rows.map((r) => r.value)));
     const x = (v) => labelW + (v / max) * plotW;
 
-    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': caption });
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'group', 'aria-label': caption });
     wrap.prepend(svg);
 
     // Gridlines and ticks.
@@ -77,7 +102,7 @@ export function barChart(host, { rows, groups, format, axisFormat = format, capt
 
     rows.forEach((r, i) => {
       const y = top + i * rowH;
-      const g = el('g', { class: 'bar-row', tabindex: 0 }, svg);
+      const g = el('g', { class: 'bar-row', tabindex: 0, role: 'img', 'aria-label': `${r.label}: ${format(r.value)}${r.note ? `. ${r.note}` : ''}`, 'data-i': i }, svg);
       const name = stacked
         ? el('text', { x: 0, y: y + 14, class: 'row-label' }, g)
         : el('text', { x: labelW - 10, y: y + rowH / 2 + 4, class: 'row-label', 'text-anchor': 'end' }, g);
@@ -105,17 +130,27 @@ export function barChart(host, { rows, groups, format, axisFormat = format, capt
       hit.addEventListener('pointerleave', hide);
       g.addEventListener('focus', show);
       g.addEventListener('blur', hide);
+      if (String(i) === focusedRow) g.focus();
     });
   };
 
+  renderLegend();
+  renderTable();
   draw();
   let lastW = wrap.clientWidth;
-  new ResizeObserver(() => { if (wrap.clientWidth !== lastW) { lastW = wrap.clientWidth; draw(); } }).observe(wrap);
+  const ro = new ResizeObserver(() => { if (wrap.clientWidth !== lastW) { lastW = wrap.clientWidth; draw(); } });
+  ro.observe(wrap);
 
-  // Table view.
-  const details = document.createElement('details');
-  details.className = 'table-view';
-  details.innerHTML = `<summary>Show as table</summary><table><thead><tr><th>Item</th><th class="num">Value</th>${rows.some((r) => r.note) ? '<th>Note</th>' : ''}</tr></thead><tbody>${rows.map((r) => `<tr><td>${r.label}</td><td class="num">${format(r.value)}</td>${rows.some((x) => x.note) ? `<td>${r.note || ''}</td>` : ''}</tr>`).join('')}</tbody></table>`;
-  host.appendChild(details);
-  return { redraw: draw };
+  return {
+    // Keeps the table's open/closed state and keyboard focus.
+    update(next) {
+      ({ rows, groups, format, axisFormat = next.format, caption } = next);
+      renderLegend();
+      const open = details.open;
+      renderTable();
+      details.open = open;
+      draw();
+    },
+    destroy() { ro.disconnect(); host.innerHTML = ''; },
+  };
 }

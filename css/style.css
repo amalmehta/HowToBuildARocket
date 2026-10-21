@@ -275,3 +275,11 @@ tr.total td { font-weight: 700; border-top: 2px solid var(--axis); }
   .feedback-tab { top: auto; bottom: 16px; right: 16px; transform: none; border-radius: 999px; border-bottom: 1px solid var(--line); box-shadow: var(--shadow); }
   .section { padding-top: 56px; }
 }
+
+/* ---------- Utilities and states ---------- */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.noscript { margin: 0; padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); text-align: center; }
+.flight-readout { margin: -4px 0 12px; min-height: 1.6em; font-variant-numeric: tabular-nums; }
+.viewer[data-context-lost]::after { content: "The 3D view stopped because the graphics processor reset. Reload the page to bring it back."; position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: #ddd; background: rgba(10, 12, 16, .85); }
+.flight-row :disabled { opacity: .5; cursor: not-allowed; }
+.notfound { max-width: 640px; margin: 15vh auto; padding: 0 16px; }
