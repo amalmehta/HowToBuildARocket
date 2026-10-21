@@ -51,7 +51,7 @@ export const ENGINE = {
     { label: 'Specific impulse, vacuum', value: 311, unit: 's', src: 'merlin' },
     { label: 'Specific impulse, Merlin Vacuum (MVac)', value: 348, unit: 's', src: 'merlin' },
     { label: 'Chamber pressure', value: 9.7, unit: 'MPa', digits: 1, src: 'merlin', estimate: true },
-    { label: 'Flame temperature (theoretical, LOX/RP-1)', value: 3670, unit: 'K', src: 'sutton', estimate: true },
+    { label: 'Flame temperature (theoretical, about 3,670 K)', value: 3400, unit: '°C', src: 'sutton', estimate: true },
   ],
 };
 
@@ -65,7 +65,7 @@ export const ROADMAP = [
   },
   {
     phase: 'Requirements and architecture', years: 'Year 0–1', cost: '~$5M',
-    what: 'Fix the target orbit and payload, then trade off propellants, engine cycle, stage count, diameter and reuse. Choose a design you can test cheaply and often. Falcon 9 picked LOX/RP-1, one engine design for both stages, and a 3.7 m diameter that fits on US highways.',
+    what: 'Fix the target orbit and payload, then trade off propellants, engine cycle, stage count, diameter and reuse. Choose a design you can test cheaply and often. Falcon 9 picked liquid oxygen and kerosene (LOX/RP-1), one engine design for both stages, and a 3.7 m diameter that fits on US highways.',
     ref: 'One engine design for both stages means one production line.', gate: 'Architecture frozen; Δv budget closes with margin.',
   },
   {
