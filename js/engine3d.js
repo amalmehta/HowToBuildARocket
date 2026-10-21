@@ -54,7 +54,7 @@ const flameFragment = `
     vec3 warm = vec3(1.0, 0.42, 0.1), hot = vec3(1.0, 0.82, 0.55), white = vec3(1.0, 0.96, 0.88);
     vec3 col = mix(warm, hot, centre) + white * diamonds;
     float a = fade * (0.25 + 0.75 * centre) * (0.6 + 0.4 * n) + diamonds * 0.6;
-    gl_FragColor = vec4(col * 0.9, clamp(a, 0.0, 1.0));
+    gl_FragColor = vec4(col * 1.25, clamp(a, 0.0, 1.0));
   }`;
 
 export function mountEngine(container) {
@@ -162,7 +162,7 @@ export function mountEngine(container) {
       radial.set(o.position.x, 0, o.position.z);
       if (radial.lengthSq() < 0.04) { o.visible = true; continue; }
       toCam.set(viewer.camera.position.x - o.position.x, 0, viewer.camera.position.z - o.position.z);
-      o.visible = radial.normalize().dot(toCam.normalize()) > -0.35;
+      o.visible = radial.normalize().dot(toCam.normalize()) > -0.75;
     }
   };
 
